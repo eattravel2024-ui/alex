@@ -1,0 +1,8 @@
+# Build context must be .next/standalone after public/static assets are copied.
+FROM node:24-bookworm-slim
+WORKDIR /app
+ENV NODE_ENV=production NEXT_TELEMETRY_DISABLED=1 HOSTNAME=0.0.0.0 PORT=3000
+COPY --chown=node:node . ./
+USER node
+EXPOSE 3000
+CMD ["node", "server.js"]
