@@ -11,7 +11,7 @@ test("首頁具可閱讀內容、示範聲明與安全標頭", async ({ page }) 
     "美好日常",
   );
   await expect(page.locator(".demo-notice")).toContainText("正式資料待確認");
-  await expect(page.locator(".article-card")).toHaveCount(3);
+  await expect(page.locator("#knowledge .article-card")).toHaveCount(3);
   await expect(page.locator(".event-row")).toHaveCount(3);
   await expect(
     page.getByRole("heading", { name: "會員服務建置中" }),
@@ -38,14 +38,15 @@ test("導覽可前往內容且手機選單支援關閉", async ({ page, isMobile
     .locator("#primary-navigation")
     .getByRole("link", { name: "健康知識" })
     .click();
-  await expect(page).toHaveURL(/#knowledge$/);
+  await expect(page).toHaveURL(/\/knowledge$/);
   if (isMobile)
     await expect(
       page.getByRole("button", { name: "開啟選單" }),
     ).toHaveAttribute("aria-expanded", "false");
   await expect(
-    page.getByRole("heading", { name: "給生活一點健康靈感" }),
+    page.getByRole("heading", { level: 1, name: "健康知識" }),
   ).toBeInViewport();
+  await page.locator(".site-footer").scrollIntoViewIfNeeded();
   await page.getByRole("button", { name: "返回頂部" }).click();
   await expect(page.getByRole("heading", { level: 1 })).toBeInViewport();
 });

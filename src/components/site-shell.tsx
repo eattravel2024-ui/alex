@@ -86,9 +86,9 @@ export function SiteFooter() {
         </div>
         <div>
           <h2>服務與支持</h2>
-          <Link href="/#events">活動與課程</Link>
+          <Link href="/events">活動與課程</Link>
           <Link href="/#membership">會員服務規劃</Link>
-          <Link href="/#contact">聯絡資訊</Link>
+          <Link href="/contact">聯絡資訊</Link>
         </div>
         <div>
           <h2>法律與隱私</h2>

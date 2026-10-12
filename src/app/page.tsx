@@ -1,6 +1,14 @@
 import Image from "next/image";
 import { ActionLink, SectionHeading } from "@/components/ui";
-import { articles, events } from "@/lib/content";
+import Link from "next/link";
+import { ArticleCard } from "@/components/content/article-card";
+import { knowledgeArticles, newsArticles, eventRecords } from "@/lib/catalog";
+import { pageMetadata } from "@/lib/seo";
+export const metadata = pageMetadata(
+  "中華健康管理協會｜讓健康成為日常",
+  "協會官方網站開發示範：健康知識、最新消息與活動課程。",
+  "/",
+);
 export default function Home() {
   return (
     <>
@@ -29,8 +37,8 @@ export default function Home() {
               一起走向更有品質的每一天。
             </p>
             <div className="actions">
-              <ActionLink href="#about">認識協會</ActionLink>
-              <ActionLink href="#events" secondary>
+              <ActionLink href="/about">認識協會</ActionLink>
+              <ActionLink href="/events" secondary>
                 探索活動與課程
               </ActionLink>
             </div>
@@ -139,6 +147,25 @@ export default function Home() {
           </div>
         </div>
       </section>
+      <section id="news" className="section services-section">
+        <div className="container">
+          <div className="section-top">
+            <SectionHeading
+              eyebrow="ASSOCIATION NEWS"
+              title="掌握最新消息"
+              text="認識網站建置與服務規劃；以下非協會正式公告。"
+            />
+            <Link className="text-link" href="/news">
+              瀏覽所有消息 ↗
+            </Link>
+          </div>
+          <div className="article-grid">
+            {newsArticles.slice(0, 3).map((article) => (
+              <ArticleCard key={article.slug} article={article} />
+            ))}
+          </div>
+        </div>
+      </section>
       <section id="knowledge" className="section">
         <div className="container">
           <div className="section-top">
@@ -147,29 +174,13 @@ export default function Home() {
               title="給生活一點健康靈感"
               text="從小小的日常選擇，找到更適合自己的生活方式。"
             />
-            <span className="section-note">健康知識專區 · 示範內容</span>
+            <Link className="text-link" href="/knowledge">
+              探索全部健康知識 ↗
+            </Link>
           </div>
           <div className="article-grid">
-            {articles.map((article) => (
-              <article className="article-card" key={article.title}>
-                <div className="article-image">
-                  <Image
-                    src={article.image}
-                    width={600}
-                    height={400}
-                    alt={`${article.category}主題插畫`}
-                    loading="lazy"
-                  />
-                </div>
-                <div className="article-body">
-                  <span className="tag">{article.category}</span>
-                  <h3>{article.title}</h3>
-                  <p>{article.text}</p>
-                  <span className="content-status">
-                    文章全文將於 Phase 2 建立
-                  </span>
-                </div>
-              </article>
+            {knowledgeArticles.slice(0, 3).map((article) => (
+              <ArticleCard key={article.slug} article={article} />
             ))}
           </div>
           <p className="medical-note">
@@ -195,18 +206,20 @@ export default function Home() {
             </div>
           </div>
           <div className="event-list">
-            {events.map((event) => (
-              <article key={event.day} className="event-row">
+            {eventRecords.map((event, index) => (
+              <article key={event.slug} className="event-row">
                 <span className="event-index">
-                  {event.day}
+                  {String(index + 1).padStart(2, "0")}
                   <small>DEMO</small>
                 </span>
                 <div>
                   <span className="event-category">
                     {event.category} · {event.format}
                   </span>
-                  <h3>{event.title}</h3>
-                  <p>{event.text}</p>
+                  <h3>
+                    <Link href={`/events/${event.slug}`}>{event.title}</Link>
+                  </h3>
+                  <p>示範活動 · {event.startsAt.slice(0, 10)} · 報名未開放</p>
                 </div>
                 <span className="event-status">籌備中</span>
               </article>
@@ -224,7 +237,7 @@ export default function Home() {
               從認識彼此開始。
             </h2>
             <p>期待與你一起，讓健康成為更有力量的日常。</p>
-            <ActionLink href="#contact" secondary>
+            <ActionLink href="/contact" secondary>
               了解後續服務規劃
             </ActionLink>
           </div>

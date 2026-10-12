@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { isIndexingEnabled } from "@/lib/seo";
 import { BackToTop, SiteFooter, SiteHeader } from "@/components/site-shell";
 import "./globals.css";
 export const metadata: Metadata = {
@@ -8,7 +9,7 @@ export const metadata: Metadata = {
   },
   description:
     "中華健康管理協會官方網站開發示範：健康知識、活動課程與會員服務。正式協會資料待確認。",
-  robots: { index: false, follow: false },
+  robots: { index: isIndexingEnabled(), follow: isIndexingEnabled() },
 };
 export default function RootLayout({
   children,

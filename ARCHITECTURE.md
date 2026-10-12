@@ -29,3 +29,11 @@ Node.js 24 與 Docker daemon 可用；PostgreSQL 尚未啟動，Phase 1 不需�
 ## 關鍵決策
 
 PostgreSQL 與 Prisma 依需求採用。帳號與正式會員資格分離。Auth.js 或另一維護中的成熟 session library 在 Phase 3 評估 credentials、verification、失效策略相容性後決定。正式會員規則、SMTP、Domain、金流、個資保留期限與證明措辭須由協會確認；目前不需要它們即可完成 Phase 1。多語系保留於資料模型，不建立無內容的英文站。
+
+## Phase 2 實際實作
+
+`src/lib/catalog.ts`：明確測試來源的文章與活動型別／fixture、純函數篩選與分頁。`services/content-service.ts`：全文／相關文章查詢；下一階段替換 Prisma，route 與 UI 不應直連 DB。搜尋列表使用 Server Components 與 async searchParams；詳情 generateStaticParams 預渲染。
+
+`components/content`：列表、卡片、頁首／麵包屑、文章全文、活動月曆；分享是小型 Client Component。純文字內容由 React escape，不接收任意富文字 HTML。健康文章不虛構審閱者或認證。Calendar 與事件時間指定 Asia/Taipei。
+
+`seo.ts`：APP_URL 嚴格驗證、條件 canonical/OG、安全 JSON-LD；robots 預設禁止索引，sitemap 無 Domain 為空。正式對外 URL 與索引設定屬 build-time，變更需要重新 build。此次沒有資料庫 migration 或寫入 API。
