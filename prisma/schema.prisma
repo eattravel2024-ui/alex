@@ -51,6 +51,7 @@ model User {
   history MembershipStatusHistory[]
   assignedContacts ContactMessage[]
   contactChanges ContactMessageChange[]
+  pageRevisions SitePageRevision[]
   @@index([createdAt])
 }
 model Session {
@@ -185,6 +186,28 @@ model AuditLog {
   entityId String
   createdAt DateTime @default(now()) @db.Timestamptz(3)
   @@index([actorId,createdAt])
+}
+
+model SitePage {
+  key String @id
+  draft Json
+  published Json?
+  publishedAt DateTime? @db.Timestamptz(3)
+  version Int @default(1)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  revisions SitePageRevision[]
+}
+model SitePageRevision {
+  id String @id @default(uuid()) @db.Uuid
+  pageKey String
+  page SitePage @relation(fields:[pageKey],references:[key],onDelete:Restrict)
+  version Int
+  snapshot Json
+  action String
+  actorId String @db.Uuid
+  actor User @relation(fields:[actorId],references:[id],onDelete:Restrict)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  @@unique([pageKey,version])
 }
 
 enum ContactStatus {

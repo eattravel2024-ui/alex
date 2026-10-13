@@ -159,3 +159,11 @@ typecheck／lint通過；desktop/mobile孤立bootstrap與登入重設整合2項�
 ## 2026-10-13 指定管理員登入識別碼
 
 Typecheck、lint及desktop/mobile孤立整合2項通過（15.4秒）。重設時由@example.test遷移至使用者指定admin@cchm.tw，新識別碼與新密碼真實登入200、舊識別碼401，User UUID保留、Session撤銷、更名／重設audit各1筆；停用帳號拒絕。未操作VPS或寄信。CLI-only變更沒有migration與web重建要求，登入服務沿用當前已驗證建置。
+
+## 2026-10-13 首頁與協會介紹CMS
+
+第五個migration檢閱後新增SitePage/SitePageRevision與4 CHECK，無drop／重置既有資料。現有本機DB套用1筆、官方client產生成功；空DB驗證5 migrations、15 business CHECK、partial unique、既有seed不覆寫內容且無預設使用者，重跑0 pending。Typecheck、ESLint、production build、16單元測試通過。
+
+完整Playwright runner實際76項全通過（2.8分鐘），無skip。新增頁面desktop/mobile各1項涵蓋草稿不公開、五角色／Origin／strict欄位／固定章節／64KiB限制、私人預覽、發布UI、React文字XSS防護、跨頁revision拒絕、還原只草稿、併發版本200/409及revision/audit一致。頁面專案在既有全部專案之後執行，mobile依desktop，避免共用home/about資料的跨專案衝突；finally還原原始頁面snapshot與角色，僅刪自己的revision。既有前台、文章、活動、聯絡、會員與示範管理員重設／改名也重跑通過。
+
+首頁CMS僅主標題／描述與理念、服務、會員主要文字；協會六章內容，私人預覽為文字預覽。圖片、版型、卡片、導覽／Footer、顯示排序與SEO未納入本增量。VPS尚未更新，必須備份／第五個migration／build/restart，不宣稱已部署。使用者已在前一版確認admin@cchm.tw登入成功，未保存其密碼。

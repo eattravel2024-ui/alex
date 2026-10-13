@@ -53,7 +53,7 @@ try {
     'SELECT count(*)::int AS count FROM "ArticleRecord"',
   );
   if (
-    migrations.rows[0].count !== 4 ||
+    migrations.rows[0].count !== 5 ||
     users.rows[0].count !== 0 ||
     articles.rows[0].count !== 9
   )
@@ -88,15 +88,15 @@ try {
   )
     throw new Error("Seed overwrote event changes.");
   const checks = await isolated.query(
-    "SELECT count(*)::int AS count FROM pg_constraint WHERE conname IN ('membership_valid_period','application_positive_version','article_positive_version','article_publication_time','event_valid_period','event_valid_deadline','event_valid_capacity','event_positive_version','event_checkin_pair','contact_positive_version','contact_demo_only')",
+    "SELECT count(*)::int AS count FROM pg_constraint WHERE conname IN ('membership_valid_period','application_positive_version','article_positive_version','article_publication_time','event_valid_period','event_valid_deadline','event_valid_capacity','event_positive_version','event_checkin_pair','contact_positive_version','contact_demo_only','site_page_key','site_page_version','site_page_publication_pair','site_page_revision_version')",
   );
   const partial = await isolated.query(
     "SELECT indexname FROM pg_indexes WHERE indexname='application_one_open_per_user'",
   );
-  if (checks.rows[0].count !== 11 || partial.rows.length !== 1)
+  if (checks.rows[0].count !== 15 || partial.rows.length !== 1)
     throw new Error("Business constraints missing.");
   console.log(
-    "Isolated CMS schema verified: 4 migrations, 9 demo articles, 3 demo events, no default users; seed preserves edits and archive state, member/contact constraints retained.",
+    "Isolated CMS schema verified: 5 migrations, 9 demo articles, 3 demo events, no default users; seed preserves edits and archive state, member/contact/page constraints retained.",
   );
 } finally {
   if (isolated) await isolated.end();

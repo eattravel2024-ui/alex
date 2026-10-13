@@ -203,3 +203,9 @@ docker run --rm --network cchm-demo_default --env-file .env.production --mount t
 使用者指定admin@cchm.tw，CLI僅額外接受此一確定的識別碼，不放寬為任意真實信箱。已有admin@example.test時，重設命令改用--email admin@cchm.tw並加--previous-email admin@example.test；兩旗標僅在顯式reset下允許，保留User UUID/角色/關聯資料，同交易更新email/password、撤銷全部Session並記DEMO_ADMIN_LOGIN_RENAMED及DEMO_ADMIN_PASSWORD_RESET。若目標email已存在，拒絕合併／覆寫；不恢復停用狀態。
 
 新登入識別碼仍由主機操作員手動核准，不代表已通過SMTP信箱驗證；工具不寄信、不開公開註冊。若已完成更名，之後重設只使用--email admin@cchm.tw，不再使用--previous-email。本工具仍限定獨立示範DB與HTTPS test.cchm.tw，不能當作正式泛用帳號復原。
+
+## 首頁／介紹CMS更新
+
+此版有第五個migration 20261013155443_phase4_site_pages，不能只重建容器。先git pull與build web，照前述age/pg_dump程序做加密備份（可將檔名前綴改為before-site-pages），確認成功，再使用同一官方Prisma工具容器命令npm ci && npm run db:migrate，最後compose up -d --no-build web。原密碼／環境設定／資料庫volume／Nginx與憑證保留，不需seed。
+
+驗證首頁/about HTTP200、容器healthy；登入後台，儲存草稿→公開頁面不變→預覽草稿→發布→前台更新。不要為測試覆寫已確認的正式文案。表單顯示版本衝突時先保存自己的文字再重新讀取。缺乏migration時新版本publicPage會查詢失敗，不能以隱藏DB錯誤或重置資料庫解決。

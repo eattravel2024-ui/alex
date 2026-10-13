@@ -1892,3 +1892,5 @@ dd {
 .contact-fieldset { border: 0; padding: 0; margin: 0; min-width: 0; display: grid; gap: 16px; }
 .contact-fieldset > .button { justify-self: start; }
 .contact-message-text { white-space: pre-wrap; overflow-wrap: anywhere; }
+
+.cms-page-text { white-space: pre-line; overflow-wrap: anywhere; }

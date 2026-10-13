@@ -88,3 +88,11 @@ IP採x-forwarded-for最後一跳，必須由可信反向代理追加peer，網�
 PATCH /api/admin/contacts/[id]：Staff/Admin/Super Admin，本站Origin、8KiB strict JSON：version正整數、status NEW/IN_PROGRESS/RESOLVED/SPAM、assignment KEEP/CLAIM/RELEASE、note2–1000。CLAIM只能接手無負責人或本人訊息；RELEASE不能釋出別人訊息，衝突409，版本過期409，缺目標404。KEEP允許有權限的工作人員協作更新狀態，不改負責人。成功寫ContactMessageChange與CONTACT_UPDATED audit，無匿名auditactor。未登入401、Editor/Member403。
 
 後台page每次query驗當前角色，搜尋限120字、每頁10筆、只顯示最近20筆歷程；notes僅工作人員可見，所有輸入作文字渲染。
+
+# 首頁與協會介紹
+
+PATCH /api/admin/pages/[key]，key=home|about，Editor/Admin/Super Admin；Origin、64KiB strict JSON、每次驗當前角色。SAVE/PUBLISH需{action,version>=0,content:{title2–160,description2–600,sections:[{id,heading2–120,body2–3000}]}}；RESTORE需{action,version>=1,revisionId UUID}。固定完整章節ID／順序：home=about/services/membership，about=intro/mission/history/team/documents/partners。未建立頁面version=0，首次儲存version=1；其後必須送目前version，衝突409。
+
+交易advisory lock保持版本、draft、revision與PAGE_SAVED/PUBLISHED/RESTORED audit一致；PUBLISH才更新published與publishedAt，SAVE/RESTORE保留公開版本。RESTORE修訂必須屬於當前頁面，否則404，不接受其他頁面修訂；還原也新增版本。公開service不讀draft作輸出，只有沒有published的頁面用原始固定示範文字，不提供文章／活動DB故障fallback。
+
+私人文字預覽與編輯頁皆重驗權限，內容以React文字渲染，不支援HTML／script／附件／圖片路徑。沒有公開寫入或私人草稿讀取API。metadata／圖片／導覽等尚非CMS欄位。

@@ -72,3 +72,7 @@ EventRegistration eventId+userId unique、queueOrder BIGSERIAL unique、eventId+
 第四個 migration phase4_contacts 增加 ContactMessage／ContactMessageChange，共20模型。訊息ID由客户端一次提交UUID提供，重試在 advisory transaction lock 下核對完全相同的正規化內容，避免重複資料；不公開訊息查詢。ContactMessage保存同意版本／時間與version；CHECK要求version>0、isDemo=true、信箱以@example.test結尾。狀態NEW/IN_PROGRESS/RESOLVED/SPAM，status+createdAt與assignedToId+status索引。
 
 assignedTo User FK刪除SET NULL；Change contact/actor FK Restrict。歷程的assignedToId是當次快照，沒有現存User FK，用於保留原指派識別碼。更新contact row lock，版本檢查後同交易保存訊息／Change／AuditLog，內部note不放入公開回應與AuditLog。沒有正式保留政策、自動刪除或hard-delete端點。示範seed不建立聯絡訊息。
+
+## SitePage／SitePageRevision
+
+第五個migration新增2模型，共22模型。SitePage固定home/about key，draft JSON必填、published JSON nullable、publishedAt timestamptz nullable、positive version。published/publishedAt必須同時空或同時非空；revision保存snapshot/action/actor/time，pageKey+version unique，page/actor FK Restrict。四個新增CHECK，現有business CHECK共15個。儲存時在page-key advisory transaction lock下核對版本，發布與草稿分離，revision/audit原子寫入。seed不寫頁面內容，不覆寫管理員修改。

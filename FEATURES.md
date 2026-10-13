@@ -52,7 +52,7 @@
 - 完成：會員自身報名／候補／取消、FIFO 遞補與资格重查、站內通知／歷程／audit 原子交易；row lock 防超額、unique防重複；同一使用者取消後重報排到新隊尾。
 - 完成：Staff/Admin/Super Admin 名單／CSV／報到，只有 Admin/Super Admin 可修改活動；CSV公式防護／匯出稽核／不預抓下載；報到時段與資格驗證、禁止重複報到。
 - 完成：三個 migration／18模型，名額／時段／截止／check-in CHECK，空DB及加密還原驗證；seed3場原示範活動維持報名關閉，不覆寫後台狀態。
-- 尚待實作：正式活動規則／收費退款／附件上傳／QR報到／可靠寄信、完整富文字 WYSIWYG、分類／標籤獨立 CRUD、以下頁面／媒體／系統等項目，以及趨勢圖、角色指派、會員資格修改與操作原因的專用管理歷程。Phase 4 尚未全部完成。
+- 尚待實作：正式活動規則／收費退款／附件上傳／QR報到／可靠寄信、完整富文字 WYSIWYG、分類／標籤獨立 CRUD、以下媒體／系統等項目，以及趨勢圖、角色指派、會員資格修改與操作原因的專用管理歷程。Phase 4 尚未全部完成。
 
 /admin 獨立 Layout、真實 Dashboard 趨勢；Server RBAC；CMS 區塊排序／顯示、WYSIWYG/XSS、草稿／預覽／排程、Banner、頁面、導覽／Footer、媒體安全上傳；文章／分類／標籤 CRUD；會員審核、資格／停權／備註／CSV；活動名額／資格／候補／取消／報到／附件／通知／CSV；聯絡訊息指派追蹤；系統／SEO／SMTP 模板／政策設定；Audit Log。
 
@@ -81,3 +81,9 @@
 完成：VPS操作員限定CLI、固定示範DB／HTTPS網域、保留信箱識別碼、owner-only密碼檔與symlink拒絕、Better Auth官方hash、首次角色guard、transaction/advisory lock/audit。不依賴SMTP、不開公開註冊、不虛構政策同意。此為示範登入識別碼手動核准，不宣稱郵件驗證或正式管理員安全驗收。VPS實際初始化仍需使用者執行。
 
 依使用者指定，VPS CLI可將原保留示範登入識別碼更名為admin@cchm.tw，僅此指定真實形式識別碼額外允許；保留User UUID／關聯資料與權限，重設密碼／撤銷Session／更名audit同交易。VPS尚需使用者執行，不代表SMTP驗證。
+
+## 首頁與協會介紹文字CMS
+
+完成：/admin/pages/home、/admin/pages/about，Editor/Admin/Super Admin授權、strict內容與章節ID／順序驗證、草稿／安全文字私人預覽／發布／修訂還原草稿、版本409、交易鎖與revision/audit。首頁主標題與描述、理念／服務／會員三組主要標題與說明，協會介紹主標題／描述與六章文字可編輯。公開頁面只讀published；未有發布版本時使用原始示範文字，不吞掉DB錯誤。圖片、三張服務卡片、使命卡片、Banner、導覽／Footer、區塊排序／顯示與SEO欄位尚未提供管理。
+
+第五個migration新增SitePage/SitePageRevision，22模型，固定home/about key與publication pair CHECK。最近10筆修訂可還原成新草稿，不自動發布；保持示範聲明與法律資訊提示。VPS需先備份／migration／build更新，尚未由agent部署。

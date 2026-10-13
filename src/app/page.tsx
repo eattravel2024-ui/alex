@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { publicPage } from "@/lib/services/site-page-service";
 import { ActionLink, SectionHeading } from "@/components/ui";
 import Link from "next/link";
 import { ArticleCard } from "@/components/content/article-card";
@@ -12,10 +13,11 @@ export const metadata = pageMetadata(
   "/",
 );
 export default async function Home() {
-  const [newsArticles, knowledgeArticles, eventRecords] = await Promise.all([
+  const [newsArticles, knowledgeArticles, eventRecords, content] = await Promise.all([
     listPublishedArticles("news", 3),
     listPublishedArticles("knowledge", 3),
     listPublicEvents({}, 3),
+    publicPage("home"),
   ]);
   return (
     <>
@@ -29,20 +31,8 @@ export default async function Home() {
             <p className="eyebrow">
               <span className="status-dot" /> HEALTH FOR EVERYDAY LIFE
             </p>
-            <h1>
-              讓健康，
-              <br />
-              成為每個人的
-              <br />
-              <em>美好日常。</em>
-            </h1>
-            <p className="hero-description">
-              從理解健康，到實踐健康。
-              <br />
-              以知識連結彼此，以行動照顧生活，
-              <br />
-              一起走向更有品質的每一天。
-            </p>
+            <h1 className="cms-page-text">{content.title.split("\n").map((line, i, lines) => <span key={i}>{i > 0 && <br />}{i === lines.length - 1 ? <em>{line}</em> : line}</span>)}</h1>
+            <p className="hero-description cms-page-text">{content.description}</p>
             <div className="actions">
               <ActionLink href="/about">認識協會</ActionLink>
               <ActionLink href="/events" secondary>
@@ -88,8 +78,8 @@ export default async function Home() {
         <div className="container about-grid">
           <SectionHeading
             eyebrow="ABOUT THE ASSOCIATION"
-            title="健康的未來，從我們一起開始。"
-            text="我們期待成為健康知識與日常生活之間的橋梁，讓每個人都有機會理解健康、關心自己，也關心身邊的人。"
+            title={content.sections[0].heading}
+            text={content.sections[0].body}
           />
           <div className="about-content">
             <p className="placeholder-label">協會理念示範文案</p>
@@ -109,8 +99,8 @@ export default async function Home() {
         <div className="container">
           <SectionHeading
             eyebrow="WHAT WE DO"
-            title="陪伴健康生活的每一步"
-            text="從知識、交流到參與，建立相互支持的健康生活網絡。以下為服務方向示範。"
+            title={content.sections[1].heading}
+            text={content.sections[1].body}
           />
           <div className="service-grid">
             {[
@@ -238,12 +228,8 @@ export default async function Home() {
         <div className="container membership-panel">
           <div>
             <p className="eyebrow">BETTER TOGETHER</p>
-            <h2>
-              健康同行，
-              <br />
-              從認識彼此開始。
-            </h2>
-            <p>期待與你一起，讓健康成為更有力量的日常。</p>
+            <h2 className="cms-page-text">{content.sections[2].heading}</h2>
+            <p className="cms-page-text">{content.sections[2].body}</p>
             <ActionLink href="/member" secondary>
               前往會員服務
             </ActionLink>

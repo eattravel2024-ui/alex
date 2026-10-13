@@ -15,12 +15,12 @@ export default defineConfig({
   projects: [
     {
       name: "desktop",
-      testIgnore: ["**/cms.spec.ts", "**/events.spec.ts"],
+      testIgnore: ["**/cms.spec.ts", "**/events.spec.ts", "**/pages.spec.ts"],
       use: { ...devices["Desktop Chrome"] },
     },
     {
       name: "mobile",
-      testIgnore: ["**/cms.spec.ts", "**/events.spec.ts"],
+      testIgnore: ["**/cms.spec.ts", "**/events.spec.ts", "**/pages.spec.ts"],
       use: { ...devices["iPhone 13"], defaultBrowserType: "chromium" },
     },
     {
@@ -45,6 +45,16 @@ export default defineConfig({
       name: "events-mobile",
       testMatch: "**/events.spec.ts",
       dependencies: ["cms-desktop", "cms-mobile"],
+      use: { ...devices["iPhone 13"], defaultBrowserType: "chromium" },
+    },
+    {
+      name: "pages-desktop", testMatch: "**/pages.spec.ts",
+      dependencies: ["events-desktop", "events-mobile"],
+      use: { ...devices["Desktop Chrome"] },
+    },
+    {
+      name: "pages-mobile", testMatch: "**/pages.spec.ts",
+      dependencies: ["pages-desktop"],
       use: { ...devices["iPhone 13"], defaultBrowserType: "chromium" },
     },
   ],
