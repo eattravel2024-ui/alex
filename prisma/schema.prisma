@@ -1,0 +1,180 @@
+generator client {
+  provider = "prisma-client"
+  output = "../src/generated/prisma"
+}
+datasource db {
+  provider = "postgresql"
+}
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  EDITOR
+  STAFF
+  MEMBER
+}
+enum ApplicationStatus {
+  PENDING
+  RETURNED
+  APPROVED
+  REJECTED
+}
+model User {
+  id String @id @default(uuid()) @db.Uuid
+  name String
+  email String @unique
+  emailVerified Boolean @default(false)
+  image String?
+  role Role @default(MEMBER)
+  disabled Boolean @default(false)
+  termsAcceptedAt DateTime? @db.Timestamptz(3)
+  privacyAcceptedAt DateTime? @db.Timestamptz(3)
+  policyVersion String?
+  termsAccepted Boolean @default(false)
+  privacyAccepted Boolean @default(false)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  sessions Session[]
+  accounts Account[]
+  profile MemberProfile?
+  applications MembershipApplication[] @relation("Applicant")
+  reviews MembershipApplication[] @relation("Reviewer")
+  membership Membership?
+  notifications Notification[]
+  bookmarks ArticleBookmark[]
+  auditLogs AuditLog[]
+  history MembershipStatusHistory[]
+  @@index([createdAt])
+}
+model Session {
+  id String @id @default(uuid()) @db.Uuid
+  expiresAt DateTime @db.Timestamptz(3)
+  token String @unique
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  ipAddress String?
+  userAgent String?
+  userId String @db.Uuid
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+  @@index([userId,expiresAt])
+}
+model Account {
+  id String @id @default(uuid()) @db.Uuid
+  accountId String
+  providerId String
+  userId String @db.Uuid
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+  accessToken String?
+  refreshToken String?
+  idToken String?
+  accessTokenExpiresAt DateTime? @db.Timestamptz(3)
+  refreshTokenExpiresAt DateTime? @db.Timestamptz(3)
+  scope String?
+  password String?
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  @@unique([providerId,accountId])
+  @@index([userId])
+}
+model Verification {
+  id String @id @default(uuid()) @db.Uuid
+  identifier String
+  value String
+  expiresAt DateTime @db.Timestamptz(3)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  @@index([identifier])
+  @@index([expiresAt])
+}
+model RateLimit {
+  id String @id @default(uuid()) @db.Uuid
+  key String @unique
+  count Int
+  lastRequest BigInt
+}
+model MemberProfile {
+  id String @id @default(uuid()) @db.Uuid
+  userId String @unique @db.Uuid
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+  phone String?
+  emailNotifications Boolean @default(true)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+}
+model MembershipType {
+  id String @id @default(uuid()) @db.Uuid
+  code String @unique
+  name String
+  description String
+  active Boolean @default(true)
+  isDemo Boolean @default(true)
+  applications MembershipApplication[]
+  memberships Membership[]
+}
+model MembershipApplication {
+  id String @id @default(uuid()) @db.Uuid
+  userId String @db.Uuid
+  user User @relation("Applicant",fields:[userId],references:[id],onDelete:Restrict)
+  typeId String @db.Uuid
+  type MembershipType @relation(fields:[typeId],references:[id],onDelete:Restrict)
+  motivation String
+  status ApplicationStatus @default(PENDING)
+  reviewerId String? @db.Uuid
+  reviewer User? @relation("Reviewer",fields:[reviewerId],references:[id],onDelete:SetNull)
+  reviewNote String?
+  version Int @default(1)
+  isDemo Boolean @default(true)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  history MembershipStatusHistory[]
+  @@index([userId,createdAt])
+  @@index([status,createdAt])
+}
+model Membership {
+  id String @id @default(uuid()) @db.Uuid
+  userId String @unique @db.Uuid
+  user User @relation(fields:[userId],references:[id],onDelete:Restrict)
+  typeId String @db.Uuid
+  type MembershipType @relation(fields:[typeId],references:[id],onDelete:Restrict)
+  memberNumber String @unique
+  validFrom DateTime @db.Timestamptz(3)
+  validUntil DateTime @db.Timestamptz(3)
+  isDemo Boolean @default(true)
+}
+model MembershipStatusHistory {
+  id String @id @default(uuid()) @db.Uuid
+  applicationId String @db.Uuid
+  application MembershipApplication @relation(fields:[applicationId],references:[id],onDelete:Restrict)
+  actorId String @db.Uuid
+  actor User @relation(fields:[actorId],references:[id],onDelete:Restrict)
+  fromStatus ApplicationStatus?
+  toStatus ApplicationStatus
+  note String?
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  @@index([applicationId,createdAt])
+}
+model Notification {
+  id String @id @default(uuid()) @db.Uuid
+  userId String @db.Uuid
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+  title String
+  body String
+  readAt DateTime? @db.Timestamptz(3)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  @@index([userId,readAt])
+}
+model ArticleBookmark {
+  id String @id @default(uuid()) @db.Uuid
+  userId String @db.Uuid
+  user User @relation(fields:[userId],references:[id],onDelete:Cascade)
+  articleSlug String
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  @@unique([userId,articleSlug])
+}
+model AuditLog {
+  id String @id @default(uuid()) @db.Uuid
+  actorId String @db.Uuid
+  actor User @relation(fields:[actorId],references:[id],onDelete:Restrict)
+  action String
+  entityId String
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  @@index([actorId,createdAt])
+}

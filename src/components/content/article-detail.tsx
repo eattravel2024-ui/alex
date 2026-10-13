@@ -5,6 +5,7 @@ import { getRelatedArticles } from "@/lib/services/content-service";
 import { siteOrigin, serializeStructuredData } from "@/lib/seo";
 import { Breadcrumb } from "./page-heading";
 import { ArticleCard } from "./article-card";
+import { BookmarkControl } from "@/components/member/bookmark-control";
 import { ShareButton } from "./share-button";
 export function ArticleDetail({ article }: { article: Article }) {
   const title = article.kind === "news" ? "最新消息" : "健康知識",
@@ -89,8 +90,11 @@ export function ArticleDetail({ article }: { article: Article }) {
         </div>
         <ShareButton />
         {article.kind === "knowledge" && (
+          <BookmarkControl slug={article.slug} />
+        )}
+        {article.kind === "knowledge" && (
           <p className="medical-note">
-            會員收藏功能將在 Phase 3 開放，目前不記錄瀏覽次數或收藏狀態。
+            文章收藏僅供已登入且驗證信箱的帳號使用，目前不記錄閱讀次數。
           </p>
         )}
       </article>

@@ -14,7 +14,7 @@ test("首頁具可閱讀內容、示範聲明與安全標頭", async ({ page }) 
   await expect(page.locator("#knowledge .article-card")).toHaveCount(3);
   await expect(page.locator(".event-row")).toHaveCount(3);
   await expect(
-    page.getByRole("heading", { name: "會員服務建置中" }),
+    page.getByRole("heading", { name: "會員服務開發版" }),
   ).toBeVisible();
   expect(
     await page.evaluate(

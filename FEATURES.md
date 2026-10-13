@@ -1,6 +1,6 @@
 # 功能狀態
 
-標記：完成＝有可執行成果與驗證；規劃＝尚無功能。網站目前提供 Phase 1–2 前台瀏覽，不可作正式會員平台營運。
+標記：完成＝有可執行成果與驗證；規劃＝尚無功能。網站目前提供 Phase 1–2 前台與 Phase 3 本機會員核心，不可作正式協會平台營運。
 
 ## Phase 1
 
@@ -20,12 +20,21 @@
 - 完成：聯絡資訊占位與可操作 FAQ；不提供尚未能儲存資料的表單。
 - 完成：首頁消息區及通往全文的內容卡片、主導覽連結至實際內容頁。
 - 完成：Metadata／Open Graph、預設 noindex robots、APP_URL 條件 canonical／sitemap／Article JSON-LD；無正式 Domain 不產生虛構網址。HTML 內資料序列化 escape `<`。
-- 待完成：正式內容、內容審閱、CMS 資料來源；會員收藏與閱讀統計、活動附件與報名、聯絡提交／防垃圾訊息。後續 Phase 3–4 接資料庫，不能宣稱目前具備持久化。
+- 待完成：正式內容、內容審閱、CMS 資料來源；閱讀統計、活動附件與報名、聯絡提交／防垃圾訊息。後續 Phase 3–4 接資料庫，不能宣稱目前具備持久化。
 - 尚未宣稱：全功能 CMS、完整 SEO/CWV／無障礙認證、正式部署驗收。
 
-## Phase 3：規劃
+## Phase 3：本機會員核心已實作
 
-PostgreSQL / Prisma / migration / seed；成熟身分驗證、註冊、email verification、登入登出、session、重設／修改密碼、rate limit、停用；會員中心、個人資料、正式資格、期限、申請與補件、收藏、報名紀錄、通知／隱私設定；表單寫入 DB。
+- PostgreSQL 17、Prisma 7.10、13 個模型、SQL migration、FK／unique／索引；pending/returned 申請 partial unique、期限 CHECK；migration 實際套用且重跑 0 pending。
+- Better Auth 1.7.7（使用者已確認）：註冊、信箱驗證、登入登出、忘記／重設／修改密碼、持久化 Session、停用狀態檢查、server password/consent 驗證。
+- 本機 Mailpit 實際收到驗證與重設郵件；重設 token 單次使用、密碼重設撤銷所有 Session，修改密碼撤銷其他登入；自己的 Session 可逐筆撤銷。
+- 會員中心：自身資料與選填電話／偏好、網站帳號與會員資格分離、示範申請、補件重新提交、進度／歷程、文章收藏、站內通知。
+- 申請與審核 service：交易、row lock、版本檢查；Admin/Staff/Super Admin 伺服器授權；核准會員、history、通知、audit 同一交易；拒絕自我審核。
+- CSRF Origin／JSON 大小限制、Zod strict inputs、角色不能自行指定、持久化 per-IP + per-account 限流、HttpOnly/SameSite cookies、HTTPS時 Secure。
+- 加密開發 backup、孤立 DB restore 演練；現有 DB 不覆寫。無預設管理員／靜態共用密碼。
+- 正式資格／章程／政策／SMTP 未確認；正式註冊預設關閉，正式申請預設關閉，示範資格無正式效力。
+- 待完成：管理審核 UI（Phase 4）、正式會員規則、MFA、通知可靠 email outbox／重試、會員證明 PDF（Phase 5）、活動報名、聯絡提交、資料刪除工作流程與完整 privacy operations。文章仍來自 fixtures，CMS 留待 Phase 4。
+- 本機 Prisma 使用版本鎖定的官方內部 JS/WASM 介面；標準 native CLI 網域仍受限。正式上線必須驗證標準 migration 工具鏈與部署環境，不能宣稱完成。
 
 ## Phase 4：規劃
 

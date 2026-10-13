@@ -1,0 +1,25 @@
+services:
+  db:
+    image: postgres:17-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: health_dev
+      POSTGRES_USER: health_dev
+      POSTGRES_PASSWORD: ${DEV_DATABASE_PASSWORD:?Run npm run dev:setup first}
+    ports:
+      - '127.0.0.1:5433:5432'
+    volumes:
+      - health_dev_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U health_dev -d health_dev']
+      interval: 3s
+      timeout: 3s
+      retries: 20
+  mail:
+    image: axllent/mailpit:v1.27
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:1025:1025'
+      - '127.0.0.1:8025:8025'
+volumes:
+  health_dev_data:

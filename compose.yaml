@@ -2,6 +2,22 @@ services:
   web:
     build: .
     restart: unless-stopped
+    environment:
+      DATABASE_URL: ${DATABASE_URL:?Configure the runtime PostgreSQL URL securely}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:?Configure the HTTPS authentication origin}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?Configure a runtime signing secret}
+      DEVELOPMENT_MODE: "false"
+      POLICIES_APPROVED: ${POLICIES_APPROVED:-false}
+      POLICY_VERSION: ${POLICY_VERSION:-}
+      MEMBERSHIP_APPLICATIONS_ENABLED: ${MEMBERSHIP_APPLICATIONS_ENABLED:-false}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-}
+      APP_URL: ${APP_URL:-}
+      SITE_INDEXING_ENABLED: ${SITE_INDEXING_ENABLED:-false}
     ports:
       - "127.0.0.1:3000:3000"
     healthcheck:

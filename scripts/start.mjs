@@ -1,3 +1,5 @@
+import { config } from "dotenv";
+config({ path: ".env.local", quiet: true });
 import { cpSync, existsSync } from "node:fs";
 import { spawn } from "node:child_process";
 if (!existsSync(".next/standalone/server.js")) {

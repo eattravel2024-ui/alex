@@ -48,7 +48,7 @@ export function SiteHeader() {
           <Link
             onClick={() => setOpen(false)}
             className="nav-cta"
-            href="/#membership"
+            href="/member"
           >
             會員服務 <span aria-hidden="true">↗</span>
           </Link>
@@ -87,7 +87,7 @@ export function SiteFooter() {
         <div>
           <h2>服務與支持</h2>
           <Link href="/events">活動與課程</Link>
-          <Link href="/#membership">會員服務規劃</Link>
+          <Link href="/member">會員服務規劃</Link>
           <Link href="/contact">聯絡資訊</Link>
         </div>
         <div>

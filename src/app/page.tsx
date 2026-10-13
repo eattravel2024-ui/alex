@@ -237,18 +237,17 @@ export default function Home() {
               從認識彼此開始。
             </h2>
             <p>期待與你一起，讓健康成為更有力量的日常。</p>
-            <ActionLink href="/contact" secondary>
-              了解後續服務規劃
+            <ActionLink href="/member" secondary>
+              前往會員服務
             </ActionLink>
           </div>
           <div className="membership-note">
             <span className="large-mark" aria-hidden="true">
               ✳
             </span>
-            <h3>會員服務建置中</h3>
+            <h3>會員服務開發版</h3>
             <p>
-              註冊、登入及入會申請將於 Phase 3
-              提供。網站帳號與協會正式會員資格將分開管理，入會規則須由協會確認。
+              已提供本機測試註冊、信箱驗證、登入與示範入會申請。網站帳號與協會正式會員資格分開管理，正式入會規則仍待協會確認。
             </p>
           </div>
         </div>

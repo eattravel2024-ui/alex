@@ -39,7 +39,9 @@ test("消息全文、分享與未知文章404", async ({ page, context }) => {
     "article",
   );
   await page.getByRole("button", { name: "複製分享連結" }).click();
-  await expect(page.getByRole("status")).toHaveText("文章連結已複製。");
+  await expect(page.locator(".share-control").getByRole("status")).toHaveText(
+    "文章連結已複製。",
+  );
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
     "http://127.0.0.1:3000/news/website-preview",
   );
