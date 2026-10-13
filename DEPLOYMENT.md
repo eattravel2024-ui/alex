@@ -185,3 +185,15 @@ rm /root/.cchm-bootstrap/password
 ```
 
 私密檔必須是目前使用者擁有的regular file，拒絕symlink及group/other權限；工具不輸出密碼與hash。若已有管理角色，停止並使用既有帳號流程，不能reset DB或刪帳號來繞過。若需修改密碼，登入後使用既有密碼修改功能；忘記密碼在未設定SMTP時沒有公開重設捷徑。
+
+## 示範管理員密碼不符的操作員重設
+
+僅在日誌確認Invalid password後，由VPS操作者使用CLI的顯式--reset-demo-password；其他既有初始化限制仍適用。從新的owner-only密碼檔讀取8–128字元英文+數字密碼，以官方hash更新既有enabled/verified SUPER_ADMIN的唯一credential，撤銷全部Session、DEMO_ADMIN_PASSWORD_RESET audit同交易。缺帳號／錯角色／停用／未核准／非唯一credential時拒絕，不恢復帳號、不改角色或建立新帳號。該action代表本機操作者重設，AuditLog actorId記目標示範管理員，不表示其以Session發起。
+
+pull最新版，不需web重建/migration。依前節私密檔程序建立不同檔名/root/.cchm-bootstrap/reset-password，避免使用舊的bootstrap password。以唯讀mount注入工具容器並指定：
+
+```sh
+docker run --rm --network cchm-demo_default --env-file .env.production --mount type=bind,src=/root/.cchm-bootstrap/reset-password,dst=/run/cchm-admin-password,readonly -v "$PWD:/app" -w /app node:24-bookworm-slim node scripts/demo-admin.mjs --email admin@example.test --name '示範管理員' --password-file /run/cchm-admin-password --confirm-demo-bootstrap --reset-demo-password
+```
+
+成功後使用新密碼在HTTPS登入，確認成功再刪除此次私密檔。不能重新執行不帶reset flag的bootstrap來覆寫帳號；不能將這個保留識別碼示範工具當作公開忘記密碼端點或正式帳號復原流程。

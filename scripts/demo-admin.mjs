@@ -16,6 +16,9 @@ try {
     if (key === "--confirm-demo-bootstrap") {
       if (options.confirm) refuse("Duplicate confirmation flag.");
       options.confirm = true;
+    } else if (key === "--reset-demo-password") {
+      if (options.reset) refuse("Duplicate reset flag.");
+      options.reset = true;
     } else if (["--email", "--name", "--password-file"].includes(key) && args[i + 1] && !args[i + 1].startsWith("--")) {
       if (options[key]) refuse("Duplicate option.");
       options[key] = args[++i];
@@ -53,6 +56,18 @@ try {
   client = await pool.connect();
   await client.query("BEGIN");
   await client.query("SELECT pg_advisory_xact_lock(hashtextextended('cchm-demo-admin-bootstrap',0))");
+  if (options.reset) {
+    const result = await client.query('SELECT id,role,disabled,"emailVerified" FROM "User" WHERE email=$1 FOR UPDATE', [email]);
+    const target = result.rows[0];
+    if (!target || target.role !== "SUPER_ADMIN" || target.disabled || !target.emailVerified)
+      refuse("Reset requires an existing enabled, operator-approved demo SUPER_ADMIN. No account state changed.");
+    const updated = await client.query('UPDATE "Account" SET password=$1,"updatedAt"=now() WHERE "userId"=$2 AND "providerId"=\'credential\'', [hashed, target.id]);
+    if (updated.rowCount !== 1) refuse("Expected one password credential; reset refused.");
+    await client.query('DELETE FROM "Session" WHERE "userId"=$1', [target.id]);
+    await client.query('INSERT INTO "AuditLog" (id,"actorId",action,"entityId") VALUES ($1,$2,\'DEMO_ADMIN_PASSWORD_RESET\',$3)', [randomUUID(), target.id, target.id]);
+    await client.query("COMMIT");
+    console.log("Demo administrator password reset; all sessions revoked and audit committed. No email sent.");
+  } else {
   const admins = await client.query("SELECT id FROM \"User\" WHERE role IN ('SUPER_ADMIN','ADMIN','EDITOR','STAFF') LIMIT 1");
   if (admins.rows.length) refuse("A management account already exists. No account or password was changed.");
   if ((await client.query('SELECT id FROM "User" WHERE email=$1', [email])).rows.length)
@@ -65,6 +80,7 @@ try {
   await client.query('INSERT INTO "AuditLog" (id,"actorId",action,"entityId") VALUES ($1,$2,\'DEMO_ADMIN_BOOTSTRAPPED\',$3)', [randomUUID(), id, id]);
   await client.query("COMMIT");
   console.log("Demo administrator created; credential hash and audit record committed. No email sent; no public signup or policy flags changed.");
+  }
 } catch (error) {
   if (client) await client.query("ROLLBACK").catch(() => {});
   console.error(error instanceof Refusal ? error.message : "Bootstrap failed. Check runtime configuration, database access and password-file permissions; no secrets displayed.");

@@ -70,3 +70,5 @@ CLI demo-admin不是public endpoint，只允許cchm_demo/test.cchm.tw及明確�
 首次初始化以advisory transaction lock檢查任何管理角色／重複email，拒絕覆寫；新增User/Account/AuditLog原子交易。emailVerified為保留@example.test識別碼的操作者手動核准，不是SMTP驗證；不更改政策／signup flags，consentfalse。這不提供正式身分確認、MFA或忘記密碼的無SMTP繞過。操作後移除暫存密碼檔，使用者自行保存密碼。
 
 依使用者明確指定，帳號密碼最低長度改為8字元、上限128，保留英文字母與數字要求；註冊、重設／修改、UI與示範初始化一致。Auth簽章密鑰與資料庫密碼規則不使用這個帳號密碼下限。
+
+操作員密碼重設新增顯式--reset-demo-password，沿用示範DB/origin/identifier/private-file限制；只允許enabled/verified SUPER_ADMIN且唯一credential，同交易hash更新、Session全部撤銷、DEMO_ADMIN_PASSWORD_RESET audit。不是SMTP重設或公開端點，不恢復停用／未核准狀態。audit actor為目標示範管理員，action標記操作員CLI重設，不冒稱Session驗證的使用者操作。

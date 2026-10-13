@@ -66,6 +66,21 @@ test("示範管理員首次初始化、拒絕覆寫與安全限制，真實登�
     const dashboard = await request.get(origin + "/admin");
     expect(dashboard.status()).toBe(200);
     expect(await dashboard.text()).toContain("工作總覽");
+    const replacement = "B" + randomUUID().slice(0, 6) + "8";
+    writeFileSync(file, replacement + "\n", { mode: 0o600 });
+    const reset = run([...args, "--reset-demo-password"]);
+    expect(reset.status).toBe(0);
+    expect(reset.stdout).toContain("all sessions revoked");
+    expect(reset.stdout + reset.stderr).not.toContain(replacement);
+    expect((await db.query('SELECT id FROM "Session"')).rows).toHaveLength(0);
+    const revoked = await request.get(origin + "/admin", { maxRedirects: 0 });
+    expect(await revoked.text()).not.toContain("工作總覽");
+    expect((await request.get(origin + "/api/me")).status()).toBe(401);
+    expect((await request.post(origin + "/api/auth/sign-in/email", { headers: { origin }, data: { email, password: secret } })).status()).toBe(401);
+    expect((await request.post(origin + "/api/auth/sign-in/email", { headers: { origin }, data: { email, password: replacement } })).status()).toBe(200);
+    expect((await db.query('SELECT id FROM "AuditLog" WHERE action=\'DEMO_ADMIN_PASSWORD_RESET\'')).rows).toHaveLength(1);
+    await db.query('UPDATE "User" SET disabled=true');
+    expect(run([...args, "--reset-demo-password"]).status).toBe(1);
   } finally {
     if (child && child.exitCode === null) {
       const stopped = new Promise<void>((resolve) => child!.once("exit", () => resolve()));

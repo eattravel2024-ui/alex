@@ -149,3 +149,9 @@ Typecheck／ESLint通過。獨立初始化整合套件desktop/mobile實際2項�
 ## 2026-10-13 使用者指定8字元密碼
 
 同步Zod passwordSchema、Better Auth minPasswordLength、register/reset UI、password mutation提示、demo-admin CLI及DEPLOYMENT密碼檔建立區塊。16單元測試、typecheck、lint、production build通過；auth與demo-admin的桌面／手機整合實際14項全通過（44.8秒）。新增實際8字元註冊／驗證／登入／修改與7字元拒絕，初始化測試改用隨機8字元密碼並實際登入。既有重設token、Session撤銷、角色與暴力破解限制也通過。其他套件本次未重跑；無migration，VPS須pull/build/restart後生效。
+
+## 2026-10-13 操作員示範密碼重設
+
+typecheck／lint通過；desktop/mobile孤立bootstrap與登入重設整合2項全通過（15.7秒）。以8字元新密碼更新官方hash，所有Session刪除，舊密碼登入401、新密碼登入200，稽核只新增1筆，停用帳號重設拒絕。不輸出密碼，無SMTP、無migration/web source變更，未直接操作VPS。
+
+最初測試假定/admin未登入必為307，但Next streaming redirect可回200。改以/api/me=401與/admin不含工作總覽驗證實際撤權，保留DB Session=0、新舊密碼與audit斷言；不是放寬權限。
