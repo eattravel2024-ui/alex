@@ -19,7 +19,7 @@ try {
     } else if (key === "--reset-demo-password") {
       if (options.reset) refuse("Duplicate reset flag.");
       options.reset = true;
-    } else if (["--email", "--name", "--password-file"].includes(key) && args[i + 1] && !args[i + 1].startsWith("--")) {
+    } else if (["--email", "--previous-email", "--name", "--password-file"].includes(key) && args[i + 1] && !args[i + 1].startsWith("--")) {
       if (options[key]) refuse("Duplicate option.");
       options[key] = args[++i];
     } else refuse("Usage: --email <demo@example.test> --name <display name> --password-file <private file> --confirm-demo-bootstrap");
@@ -27,8 +27,11 @@ try {
   if (!options.confirm) refuse("Explicit --confirm-demo-bootstrap is required.");
   const email = options["--email"]?.trim().toLowerCase();
   const name = options["--name"]?.trim();
-  if (!email || email.length > 254 || !/^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@example\.test$/.test(email))
-    refuse("Only a reserved @example.test demo login identifier is allowed.");
+  if (!email || email.length > 254 || !(email === "admin@cchm.tw" || /^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@example\.test$/.test(email)))
+    refuse("Only a reserved @example.test identifier or the operator-requested admin@cchm.tw is allowed.");
+  const previousEmail = options["--previous-email"]?.trim().toLowerCase();
+  if (previousEmail && (!options.reset || email !== "admin@cchm.tw" || !/^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@example\.test$/.test(previousEmail)))
+    refuse("Previous-email is allowed only for an explicit reset migrating a reserved demo identifier to admin@cchm.tw.");
   if (!name || name.length < 2 || name.length > 60) refuse("Display name must be 2–60 characters.");
   const url = new URL(process.env.DATABASE_URL ?? "");
   const origin = new URL(process.env.BETTER_AUTH_URL ?? "");
@@ -57,10 +60,16 @@ try {
   await client.query("BEGIN");
   await client.query("SELECT pg_advisory_xact_lock(hashtextextended('cchm-demo-admin-bootstrap',0))");
   if (options.reset) {
-    const result = await client.query('SELECT id,role,disabled,"emailVerified" FROM "User" WHERE email=$1 FOR UPDATE', [email]);
+    const result = await client.query('SELECT id,role,disabled,"emailVerified" FROM "User" WHERE email=$1 FOR UPDATE', [previousEmail ?? email]);
     const target = result.rows[0];
     if (!target || target.role !== "SUPER_ADMIN" || target.disabled || !target.emailVerified)
       refuse("Reset requires an existing enabled, operator-approved demo SUPER_ADMIN. No account state changed.");
+    if (previousEmail) {
+      if ((await client.query('SELECT id FROM "User" WHERE email=$1', [email])).rows.length)
+        refuse("Requested login identifier already exists; no accounts merged or overwritten.");
+      await client.query('UPDATE "User" SET email=$1,"updatedAt"=now() WHERE id=$2', [email, target.id]);
+      await client.query('INSERT INTO "AuditLog" (id,"actorId",action,"entityId") VALUES ($1,$2,\'DEMO_ADMIN_LOGIN_RENAMED\',$3)', [randomUUID(), target.id, target.id]);
+    }
     const updated = await client.query('UPDATE "Account" SET password=$1,"updatedAt"=now() WHERE "userId"=$2 AND "providerId"=\'credential\'', [hashed, target.id]);
     if (updated.rowCount !== 1) refuse("Expected one password credential; reset refused.");
     await client.query('DELETE FROM "Session" WHERE "userId"=$1', [target.id]);
@@ -73,7 +82,7 @@ try {
   if ((await client.query('SELECT id FROM "User" WHERE email=$1', [email])).rows.length)
     refuse("Login identifier already exists. No existing account was promoted or overwritten.");
   const id = randomUUID();
-  // emailVerified=true is an explicit operator assertion for this reserved demo identifier,
+  // emailVerified=true is an explicit operator approval for this demo login identifier,
   // not evidence of email delivery or mailbox ownership. Public signup remains closed.
   await client.query('INSERT INTO "User" (id,name,email,"emailVerified",role,disabled,"updatedAt") VALUES ($1,$2,$3,true,\'SUPER_ADMIN\',false,now())', [id, name, email]);
   await client.query('INSERT INTO "Account" (id,"accountId","providerId","userId",password,"updatedAt") VALUES ($1,$2,\'credential\',$3,$4,now())', [randomUUID(), id, id, hashed]);

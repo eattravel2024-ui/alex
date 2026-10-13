@@ -197,3 +197,9 @@ docker run --rm --network cchm-demo_default --env-file .env.production --mount t
 ```
 
 成功後使用新密碼在HTTPS登入，確認成功再刪除此次私密檔。不能重新執行不帶reset flag的bootstrap來覆寫帳號；不能將這個保留識別碼示範工具當作公開忘記密碼端點或正式帳號復原流程。
+
+## 指定登入識別碼admin@cchm.tw
+
+使用者指定admin@cchm.tw，CLI僅額外接受此一確定的識別碼，不放寬為任意真實信箱。已有admin@example.test時，重設命令改用--email admin@cchm.tw並加--previous-email admin@example.test；兩旗標僅在顯式reset下允許，保留User UUID/角色/關聯資料，同交易更新email/password、撤銷全部Session並記DEMO_ADMIN_LOGIN_RENAMED及DEMO_ADMIN_PASSWORD_RESET。若目標email已存在，拒絕合併／覆寫；不恢復停用狀態。
+
+新登入識別碼仍由主機操作員手動核准，不代表已通過SMTP信箱驗證；工具不寄信、不開公開註冊。若已完成更名，之後重設只使用--email admin@cchm.tw，不再使用--previous-email。本工具仍限定獨立示範DB與HTTPS test.cchm.tw，不能當作正式泛用帳號復原。

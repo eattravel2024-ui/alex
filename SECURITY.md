@@ -72,3 +72,5 @@ CLI demo-admin不是public endpoint，只允許cchm_demo/test.cchm.tw及明確�
 依使用者明確指定，帳號密碼最低長度改為8字元、上限128，保留英文字母與數字要求；註冊、重設／修改、UI與示範初始化一致。Auth簽章密鑰與資料庫密碼規則不使用這個帳號密碼下限。
 
 操作員密碼重設新增顯式--reset-demo-password，沿用示範DB/origin/identifier/private-file限制；只允許enabled/verified SUPER_ADMIN且唯一credential，同交易hash更新、Session全部撤銷、DEMO_ADMIN_PASSWORD_RESET audit。不是SMTP重設或公開端點，不恢復停用／未核准狀態。audit actor為目標示範管理員，action標記操作員CLI重設，不冒稱Session驗證的使用者操作。
+
+依使用者指定，demo CLI額外允許唯一真實形式的登入識別碼admin@cchm.tw。操作員顯式reset/previous-email才能由保留示範識別碼更名；目標既存拒絕，保留UUID與權限，同交易稽核/撤銷Session。emailVerified仍表示手動管理核准，不冒稱SMTP／信箱所有權驗證，不接受其他真實信箱。

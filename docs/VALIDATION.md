@@ -155,3 +155,7 @@ Typecheck／ESLint通過。獨立初始化整合套件desktop/mobile實際2項�
 typecheck／lint通過；desktop/mobile孤立bootstrap與登入重設整合2項全通過（15.7秒）。以8字元新密碼更新官方hash，所有Session刪除，舊密碼登入401、新密碼登入200，稽核只新增1筆，停用帳號重設拒絕。不輸出密碼，無SMTP、無migration/web source變更，未直接操作VPS。
 
 最初測試假定/admin未登入必為307，但Next streaming redirect可回200。改以/api/me=401與/admin不含工作總覽驗證實際撤權，保留DB Session=0、新舊密碼與audit斷言；不是放寬權限。
+
+## 2026-10-13 指定管理員登入識別碼
+
+Typecheck、lint及desktop/mobile孤立整合2項通過（15.4秒）。重設時由@example.test遷移至使用者指定admin@cchm.tw，新識別碼與新密碼真實登入200、舊識別碼401，User UUID保留、Session撤銷、更名／重設audit各1筆；停用帳號拒絕。未操作VPS或寄信。CLI-only變更沒有migration與web重建要求，登入服務沿用當前已驗證建置。

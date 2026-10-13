@@ -79,3 +79,5 @@
 ## 示範管理員初始化
 
 完成：VPS操作員限定CLI、固定示範DB／HTTPS網域、保留信箱識別碼、owner-only密碼檔與symlink拒絕、Better Auth官方hash、首次角色guard、transaction/advisory lock/audit。不依賴SMTP、不開公開註冊、不虛構政策同意。此為示範登入識別碼手動核准，不宣稱郵件驗證或正式管理員安全驗收。VPS實際初始化仍需使用者執行。
+
+依使用者指定，VPS CLI可將原保留示範登入識別碼更名為admin@cchm.tw，僅此指定真實形式識別碼額外允許；保留User UUID／關聯資料與權限，重設密碼／撤銷Session／更名audit同交易。VPS尚需使用者執行，不代表SMTP驗證。
