@@ -2,15 +2,17 @@ import Link from "next/link";
 import {
   contentUrl,
   eventMonth,
-  eventRecords,
   queryValue,
-  selectEvents,
   type SearchQuery,
 } from "@/lib/catalog";
+import { listPublicEvents } from "@/lib/services/event-service";
 import { PageHeading } from "./page-heading";
-export function EventList({ query }: { query: SearchQuery }) {
-  const filtered = selectEvents(query),
-    q = queryValue(query.q).slice(0, 120),
+export async function EventList({ query }: { query: SearchQuery }) {
+  const [filtered, eventRecords] = await Promise.all([
+    listPublicEvents(query),
+    listPublicEvents(),
+  ]);
+  const q = queryValue(query.q).slice(0, 120),
     category = queryValue(query.category),
     view = queryValue(query.view) === "calendar" ? "calendar" : "list";
   const availableMonths = [...new Set(eventRecords.map(eventMonth))].sort();
@@ -20,7 +22,12 @@ export function EventList({ query }: { query: SearchQuery }) {
     Number(requestedMonth.slice(0, 4)) >= 2000 &&
     Number(requestedMonth.slice(0, 4)) <= 2100
       ? requestedMonth
-      : availableMonths[0];
+      : (availableMonths[0] ??
+        new Intl.DateTimeFormat("sv-SE", {
+          timeZone: "Asia/Taipei",
+          year: "numeric",
+          month: "2-digit",
+        }).format(new Date()));
   const [year, monthNumber] = month.split("-").map(Number);
   const days = new Date(Date.UTC(year, monthNumber, 0)).getUTCDate();
   const offset = new Date(Date.UTC(year, monthNumber - 1, 1)).getUTCDay();
@@ -40,7 +47,7 @@ export function EventList({ query }: { query: SearchQuery }) {
       <section className="section">
         <div className="container">
           <p className="demo-warning">
-            以下日期、議程與資格皆為測試資料，不代表實際活動。所有活動尚未開放報名。
+            以下日期、議程與資格皆為測試資料，不代表實際活動。報名開放狀態依各活動顯示，僅供本機測試。
           </p>
           <form action="/events" role="search" className="search-panel">
             <div>
@@ -121,7 +128,7 @@ export function EventList({ query }: { query: SearchQuery }) {
                         查看示範活動 ↗
                       </Link>
                     </div>
-                    <span className="event-status">報名尚未開放</span>
+                    <span className="event-status">{event.bookingLabel}</span>
                   </article>
                 ))
               ) : (

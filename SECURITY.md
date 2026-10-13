@@ -50,3 +50,9 @@ PostgreSQL 開發容器使用開發管理角色以支援 migration/test，正式
 Editor/Admin/Super Admin 的內容權限於每次讀／寫重新驗證；Staff/Member 無私人文章資料權限。CMS 不渲染輸入 HTML，標題、段落、live preview 與私人預覽全部使用 React 文字轉義；不提供富文字工具列。來源限定 HTTPS/no credentials，封面限定三張本地 SVG；來源不由 server fetch。JSON strict schema／大小64 KiB／段落數與長度限制、Origin 驗證、row-lock version409、唯一 slug、修訂與 audit 原子寫入。正文樣式的 HTML 裝飾只能由元件產生。
 
 公開內容服務沒有 fixture fallback，無效／草稿／下架公開 URL 在 Next Proxy 串流前預檢並回404；private preview 禁用公開 JSON-LD/分享/收藏。此預檢增加公開全文的一次輕量 DB 查詢，頁面仍獨立查詢，不把 Proxy 作為 private authorization 邊界。尚未驗證正式 DB latency/CWV。文章保持 demo flag；正式審閱與法規內容發布流程仍待建立。
+
+## Phase 4 活動與報名
+
+活動內容修改限Admin/Super Admin，Staff只可名單／CSV／報到；Editor/Member無報名個資資料權限。會員報名與歷程只以session userId查詢。最新資格在報名／遞補／報到時驗證，role=MEMBER不等於Membership；示範資格與示範活動仅限development報名。
+
+活動row lock防超額、event+user unique防重複、sequence防候補重報插隊；所有報名狀態／通知／history／audit一個交易。未提供付款或真實健康資訊收集。CSV不預抓、no-store、防公式注入、明示2000筆上限且有audit，不把user-controlled filename送到header。QR身分查驗、MFA、正式規則、可靠email、大量併發／超時與營運容量尚未驗收。

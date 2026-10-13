@@ -3,13 +3,17 @@ export type Capability =
   | "review"
   | "members"
   | "audit"
-  | "content";
+  | "content"
+  | "events"
+  | "eventOperations";
 const grants: Record<Capability, readonly string[]> = {
   dashboard: ["SUPER_ADMIN", "ADMIN", "STAFF", "EDITOR"],
   review: ["SUPER_ADMIN", "ADMIN", "STAFF"],
   members: ["SUPER_ADMIN", "ADMIN"],
   audit: ["SUPER_ADMIN"],
   content: ["SUPER_ADMIN", "ADMIN", "EDITOR"],
+  events: ["SUPER_ADMIN", "ADMIN"],
+  eventOperations: ["SUPER_ADMIN", "ADMIN", "STAFF"],
 };
 export function canAdmin(role: string, capability: Capability) {
   return grants[capability].includes(role);

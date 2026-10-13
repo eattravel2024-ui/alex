@@ -19,6 +19,10 @@ enum ApplicationStatus {
   REJECTED
 }
 model User {
+  editedEvents EventRecord[]
+  eventRegistrations EventRegistration[] @relation("RegistrationUser")
+  eventCheckIns EventRegistration[] @relation("CheckInStaff")
+  eventChanges EventRegistrationChange[]
   editedArticles ArticleRecord[]
   articleRevisions ArticleRevision[]
   id String @id @default(uuid()) @db.Uuid
@@ -228,4 +232,77 @@ model ArticleRevision {
   actor User @relation(fields:[actorId],references:[id],onDelete:Restrict)
   createdAt DateTime @default(now()) @db.Timestamptz(3)
   @@unique([articleId,version])
+}
+
+enum EventStatus {
+  DRAFT
+  PUBLISHED
+  CANCELLED
+  ARCHIVED
+}
+enum EventEligibility {
+  ACCOUNT
+  MEMBER
+}
+enum RegistrationStatus {
+  CONFIRMED
+  WAITLISTED
+  CANCELLED
+}
+model EventRecord {
+  id String @id @default(uuid()) @db.Uuid
+  slug String @unique
+  title String
+  summary String
+  category String
+  format String
+  location String
+  agenda Json
+  startsAt DateTime @db.Timestamptz(3)
+  endsAt DateTime @db.Timestamptz(3)
+  registrationDeadline DateTime @db.Timestamptz(3)
+  status EventStatus @default(DRAFT)
+  eligibility EventEligibility @default(ACCOUNT)
+  capacity Int
+  registrationEnabled Boolean @default(false)
+  waitlistEnabled Boolean @default(false)
+  version Int @default(1)
+  isDemo Boolean @default(true)
+  updatedById String? @db.Uuid
+  updatedBy User? @relation(fields:[updatedById],references:[id],onDelete:Restrict)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  registrations EventRegistration[]
+  @@index([status,startsAt])
+  @@index([category,status])
+}
+model EventRegistration {
+  id String @id @default(uuid()) @db.Uuid
+  eventId String @db.Uuid
+  event EventRecord @relation(fields:[eventId],references:[id],onDelete:Restrict)
+  userId String @db.Uuid
+  user User @relation("RegistrationUser",fields:[userId],references:[id],onDelete:Restrict)
+  status RegistrationStatus
+  queueOrder BigInt @unique @default(autoincrement())
+  checkedInAt DateTime? @db.Timestamptz(3)
+  checkedInById String? @db.Uuid
+  checkedInBy User? @relation("CheckInStaff",fields:[checkedInById],references:[id],onDelete:Restrict)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  changes EventRegistrationChange[]
+  @@unique([eventId,userId])
+  @@index([eventId,status,queueOrder])
+  @@index([userId,createdAt])
+}
+model EventRegistrationChange {
+  id String @id @default(uuid()) @db.Uuid
+  registrationId String @db.Uuid
+  registration EventRegistration @relation(fields:[registrationId],references:[id],onDelete:Restrict)
+  fromStatus RegistrationStatus?
+  toStatus RegistrationStatus
+  note String
+  actorId String @db.Uuid
+  actor User @relation(fields:[actorId],references:[id],onDelete:Restrict)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  @@index([registrationId,createdAt])
 }

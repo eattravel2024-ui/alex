@@ -49,6 +49,9 @@ export default async function Layout({
           {canAdmin(user.role, "members") && (
             <Link href="/admin/members">帳號管理</Link>
           )}
+          {canAdmin(user.role, "eventOperations") && (
+            <Link href="/admin/events">活動管理</Link>
+          )}
           {canAdmin(user.role, "audit") && (
             <Link href="/admin/audit">稽核紀錄</Link>
           )}

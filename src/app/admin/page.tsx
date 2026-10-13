@@ -67,6 +67,13 @@ export default async function Page() {
           </Link>
         </p>
       )}
+      {canAdmin(user.role, "eventOperations") && (
+        <p>
+          <Link className="button button-primary" href="/admin/events">
+            管理活動／報名
+          </Link>
+        </p>
+      )}
       <div className="demo-warning">
         <h3>目前可用功能</h3>
         <p>
@@ -74,7 +81,8 @@ export default async function Page() {
         </p>
         <p>
           文章 CMS
-          已提供編輯、預覽、發布、排程與版本還原。媒體、活動管理與系統設定尚待實作；編輯角色沒有會員資料權限。
+          已提供編輯、預覽、發布、排程與版本還原。活動管理已支援名額、候補、取消、報到與
+          CSV。媒體與系統設定尚待實作；編輯角色沒有會員資料權限。
         </p>
       </div>
     </>

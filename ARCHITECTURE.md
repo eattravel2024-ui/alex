@@ -24,7 +24,7 @@ Node.js 24、Docker daemon 與 PostgreSQL 17 可用；Phase 3 已加入 Prisma�
 
 ## 後續主要介面
 
-`POST /api/auth/register`、verify、reset；`GET/PATCH /api/me`；`POST /api/membership/applications`；`POST/DELETE /api/events/:id/registrations`；`POST /api/contact`；admin content / members / events CRUD；報名名單 CSV。錯誤格式 `{error:{code,message}}`，不暴露資料庫細節；列表需分頁與上限。
+`POST /api/auth/register`、verify、reset；`GET/PATCH /api/me`；`POST /api/membership/applications`；`POST/DELETE /api/events/:id/registration`；`POST /api/contact`；admin content / members / events CRUD；報名名單 CSV。錯誤格式 `{error:{code,message}}`，不暴露資料庫細節；列表需分頁與上限。
 
 ## 關鍵決策
 
@@ -32,7 +32,7 @@ PostgreSQL 與 Prisma 依需求採用。帳號與正式會員資格分離。身�
 
 ## Phase 2 實際實作
 
-`src/lib/catalog.ts`：明確測試來源的文章與活動型別／fixture、純函數篩選與分頁。`services/content-service.ts`：公開文章的 Prisma 查詢，只有 PUBLISHED／已到期 SCHEDULED 可見；搜尋／分類／標籤／分頁在 DB 執行。首頁、文章、sitemap 為動態 SSR，metadata 與全文使用 React request-scoped cache 共用查詢；沒有跨 request 持久快取。活動仍用 fixtures。`article-cms-service.ts`：文字區塊 CMS、版本／row lock、修訂快照、還原草稿與 audit 交易。`src/proxy.ts` 僅對公開文章 URL 預檢可見性並 rewrite 共用 404，避免 loading stream 先送 200；頁面仍獨立查詢。
+`src/lib/catalog.ts`：明確測試來源的文章與活動型別／fixture、純函數篩選與分頁。`services/content-service.ts`：公開文章的 Prisma 查詢，只有 PUBLISHED／已到期 SCHEDULED 可見；搜尋／分類／標籤／分頁在 DB 執行。首頁、文章、sitemap 為動態 SSR，metadata 與全文使用 React request-scoped cache 共用查詢；沒有跨 request 持久快取。`services/event-service.ts` 保存活動與報名交易；前台活動與月曆也讀取 PostgreSQL。`article-cms-service.ts`：文字區塊 CMS、版本／row lock、修訂快照、還原草稿與 audit 交易。`src/proxy.ts` 對公開文章與活動 URL 預檢可見性並 rewrite 共用 404，避免 loading stream 先送 200；頁面仍獨立查詢。
 
 `components/content`：列表、卡片、頁首／麵包屑、文章全文、活動月曆；分享是小型 Client Component。純文字內容由 React escape，不接收任意富文字 HTML。健康文章不虛構審閱者或認證。Calendar 與事件時間指定 Asia/Taipei。
 
@@ -49,3 +49,9 @@ Local PostgreSQL/Mailpit 由 compose.dev.yaml 管理，.env.local 保存隨機�
 ## CMS 邊界
 
 文章資料不接受任意 HTML／媒體 URL。區塊與來源 JSON 在寫入與讀取皆驗證，React 安全文字渲染；來源只允許不含帳密的 HTTPS 連結，不伺服器抓取來源。Editor 全部文章可編輯，但無會員個資權限。版本 row lock 防止 lost update；還原永遠先轉草稿。CMS 所有內容目前保持 isDemo=true，正式審閱與正式資料的發布授權流程尚未提供。
+
+## 活動交易
+
+EventRecord 與 EventRegistration/Change 共用活動 row lock，報名／取消／遞補／容量調整／活動取消／報到都先鎖定同一活動，避免超額及隊列競爭。候補順序用 BigInt sequence，取消後重新報名更新 sequence、保留狀態歷史；BigInt 不送到 client/JSON API。每個資格檢查讀取 DB 的最新 user/membership/type，會員有效期須涵蓋活動開始。
+
+活動編輯與報名操作採不同 capabilities，Staff 可處理名單但不可改活動；Member 的列表 query 永遠以 session userId 篩選。CSV route 是受權限保護的 GET，輸出之前寫 audit，UI 使用 plain anchor 防止 Next 預抓匯出；沒有公開名單API。通知目前僅站內，外部寄信仍待 outbox。

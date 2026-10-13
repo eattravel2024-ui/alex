@@ -2,7 +2,6 @@ import "server-only";
 import { cache } from "react";
 import { db } from "@/lib/server/db";
 import {
-  eventRecords,
   queryValue,
   type Article,
   type ArticleKind,
@@ -128,6 +127,4 @@ export async function getRelatedArticles(kind: ArticleKind, slug: string) {
   });
   return [...same, ...more].map(articleView);
 }
-export function getEvent(slug: string) {
-  return eventRecords.find((e) => e.slug === slug);
-}
+export { getPublicEvent as getEvent } from "./event-service";

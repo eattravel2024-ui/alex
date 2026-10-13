@@ -24,7 +24,7 @@
 
 審核 status 為 APPROVED/RETURNED/REJECTED，note 最多 500 字；APPROVED 需要未來有效期限。version 不符或非 PENDING 回 409。送出申請時鎖定 user row，pending/returned 有 partial unique；核准時鎖 application，Membership + history + notification + audit 同一交易。
 
-完整 CMS 管理 UI、機器對機器 API token/OAuth、公眾 contact submission、event registration、頁面／媒體 CMS CRUD 尚未提供。本站 test types 只可在 DEVELOPMENT_MODE 使用；demo 核准不代表正式資格。
+完整 CMS 管理 UI、機器對機器 API token/OAuth、公眾 contact submission、正式收費報名、頁面／媒體 CMS CRUD 尚未提供。本站 test types 只可在 DEVELOPMENT_MODE 使用；demo 核准不代表正式資格。
 
 # Phase 4 管理核心
 
@@ -51,3 +51,22 @@
 文章 payload：slug、kind(news/knowledge)、title、summary、category、tags、image、author、featured、reviewedAt(nullable date)、blocks[{heading,paragraphs}]、references[{title,url}]、status(DRAFT/PUBLISHED/SCHEDULED/ARCHIVED)、publishAt(nullable ISO datetime)。status=PUBLISHED 立即發布，保留有效的過去 publishAt；SCHEDULED 必須提供未來時間。新增後 slug/kind 固定。API 不接受 isDemo／更新人／額外角色等字段；所有內容仍 isDemo=true。CMS body 上限 64 KiB，restore 維持8 KiB；Origin/Session/最新角色重新驗證。
 
 重複 slug 或過期 version 回409；不合法來源／排程／改網址回400；無目標文章或修訂不屬於目標回404；未登入401／角色不足403。版本與修訂／audit 均為交易；還原 audit=ARTICLE_RESTORED，不自動發布。下架為 soft archive，无實體刪除端點。私人預覽與所有資料頁在查詢前重新驗權，不依賴 Layout。修訂頁顯示最近20版，未提供大量歷程匯出或 hard-delete。
+
+# Phase 4 活動 API
+
+| Method / path | 功能 | 權限 |
+| --- | --- | --- |
+| POST /api/admin/events | 建立活動，成功201 | Admin/Super Admin |
+| PATCH /api/admin/events/[id] | 完整欄位+version，成功200 | Admin/Super Admin |
+| POST /api/events/[id]/registration | 本人報名／候補，成功201 | 已驗證未停用帳號，依活動資格 |
+| DELETE /api/events/[id]/registration | 本人取消，成功200 | 本人，開始前且未報到 |
+| POST /api/admin/events/[id]/check-in | registrationId，成功200 | Staff/Admin/Super Admin |
+| GET /api/admin/events/[id]/export | 報名CSV，no-store，audit | Staff/Admin/Super Admin |
+
+活動 payload：slug/title/summary/category/format/location/agenda[{time,title}]，startsAt/endsAt/registrationDeadline（含offset的ISO），status=DRAFT/PUBLISHED/CANCELLED/ARCHIVED，eligibility=ACCOUNT/MEMBER，capacity1..1000，registrationEnabled/waitlistEnabled。新增後slug固定。內容 JSON strict schema，上限32KiB；報到資料8KiB，報名／取消無需body，忽略caller提供的userId而始終使用session。Mutation驗Origin，所有資料頁與API重新驗最新角色，不依賴Layout。
+
+報名受global flag／本機demo guard／公開狀態／截止与开始／實際Membership資格限制；未符合403、重複／額滿／已截止409。Event row lock + unique維持容量；候補最多1000人，先入先遞補，取消後重報取得新的queue sequence。截止後取消不遞補；帳號失效／資格到期的候補轉取消、記通知與歷程，再處理下一人。更改已報名活動的時間／資格、減少至不足已確認容量、直接改draft/archive會409；活動取消將所有active報名／候補一併取消。
+
+報到窗口為開始前2小時至结束，僅CONFIRMED、未報到、當下帳號與會員資格仍有效；其他活动的registration404／重複409，CSV最高2000筆（413明示超限）。CSV以UTF-8 BOM+quote生成，公式開頭以apostrophe保護，含換行／引號也正確處理；只包含姓名／信箱／status／checkedIn，不含其他會員欄位。成功匯出留下EVENT_CSV_EXPORTED。
+
+通知為站內，活動與資格均保留demo聲明；未提供正式費用／退款、QR、附件上傳、可靠email outbox，正式booking flag預設false。

@@ -35,6 +35,7 @@ export default async function Layout({
             ["/member/profile", "個人資料"],
             ["/member/application", "入會申請"],
             ["/member/bookmarks", "文章收藏"],
+            ["/member/events", "我的活動"],
             ["/member/security", "帳號安全"],
           ].map(([href, label]) => (
             <Link key={href} href={href}>

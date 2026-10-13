@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { db } from "@/lib/server/db";
+import { publicEventsWhere } from "@/lib/services/event-service";
 import { publishedWhere } from "@/lib/services/content-service";
 
 // A public article's missing/draft state must set HTTP status before Next's
@@ -18,10 +19,15 @@ export async function proxy(request: NextRequest) {
     : "knowledge";
   const article =
     /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) && slug.length <= 100
-      ? await db.articleRecord.findFirst({
-          where: { ...publishedWhere(), kind, slug },
-          select: { id: true },
-        })
+      ? request.nextUrl.pathname.startsWith("/events/")
+        ? await db.eventRecord.findFirst({
+            where: { ...publicEventsWhere, slug },
+            select: { id: true },
+          })
+        : await db.articleRecord.findFirst({
+            where: { ...publishedWhere(), kind, slug },
+            select: { id: true },
+          })
       : null;
   if (!article) {
     const destination = new URL("/_not-found", request.url);
@@ -32,4 +38,6 @@ export async function proxy(request: NextRequest) {
   }
   return NextResponse.next();
 }
-export const config = { matcher: ["/news/:slug", "/knowledge/:slug"] };
+export const config = {
+  matcher: ["/news/:slug", "/knowledge/:slug", "/events/:slug"],
+};

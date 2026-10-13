@@ -43,7 +43,7 @@ Phase 3 使用 Prisma migration 與可重複的測試 seed，所有示範紀錄�
 
 ## 已建立的資料模型與差異
 
-User、Session、Account、Verification、RateLimit、MemberProfile、MembershipType、MembershipApplication、Membership、MembershipStatusHistory、Notification、ArticleBookmark、AuditLog 已建立。Role 暫以 enum 覆蓋五種角色；Role/Permission 多對多與頁面 CMS／event／course／payment 模型在後續階段。
+User、Session、Account、Verification、RateLimit、MemberProfile、MembershipType、MembershipApplication、Membership、MembershipStatusHistory、Notification、ArticleBookmark、AuditLog 已建立。Role 暫以 enum 覆蓋五種角色；Role/Permission 多對多與頁面 CMS／course／payment 模型在後續階段。
 
 Better Auth 密碼 hash 在 Account.password，User 保存 emailVerified、停用、server-owned role、條款/隱私同意時間與版本。Session token 屬敏感 DB 資料，會員 API 不暴露它；IP/user-agent 不寫入 Session。框架限流 key 可能含 IP，額外 per-account key 以 email 的 SHA-256 作識別，資料保留/定期清理留待正式營運政策。
 
@@ -58,3 +58,11 @@ ArticleBookmark 保存不可變的文章 slug，service 驗證目前文章可見
 增量 SQL migration 由鎖定版本 Prisma WASM schema-to-schema diff 產生並檢閱，僅新增 CMS tables/enums/indexes/constraints，不修改 Phase 3 migration 或移除會員約束。WASM createMigration shadow factory 在本版本不支援；development helper 明確要求先前 schema 檔，只產生 SQL，人工檢閱後再 apply，沒有 reset 或假造 migration history。不能用來宣稱完成 drift 檢查或正式 migration 工具驗收。
 
 開發 seed 匯入九篇文章，只做 ON CONFLICT DO NOTHING；新增文章第一次建立即有 revision，原 seed 文章由首次保存開始記錄後續修訂。排程不需要 DB status 轉換 job：SCHEDULED + publishAt<=now 即可見；UI 會標示已生效。
+
+## Phase 4 活動模型
+
+新增 EventRecord、EventRegistration、EventRegistrationChange，共18 models。EventRecord unique slug、status/eligibility enum、三個 timestamptz 時间、capacity／候補／報名開關、version、isDemo、更新人FK。CHECK限制 endsAt>startsAt、deadline<=startsAt、capacity1..1000及version>0；status+startsAt與category+status索引。
+
+EventRegistration eventId+userId unique、queueOrder BIGSERIAL unique、eventId+status+queueOrder／userId+createdAt索引；checkedInAt／checkedInById 同時空或同時非空。報名對 user/event Restrict，報到人 user Restrict；Change 保存每次狀態、原因、操作者与时间，不刪除歷史。沒有保存付款、保健資料或 Session token。
+
+第三個 migration 第一次因 Pg adapter 的簡易分號拆分誤讀 SQL 註解而失敗。已確認本次新建的三表全部0 rows，僅移除這三張空表及其新 enum，使用官方 engine.markMigrationRolledBack 標記失败，保留失敗紀錄；修正註解後正式apply及重跑成功。既有會員／文章資料、migration checksums與業務約束未重置。對此 adapter 的 migration SQL 註解不可使用分號，複雜函式／字串需正式 native tooling；未宣稱完全 SQL parser。

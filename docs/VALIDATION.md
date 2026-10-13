@@ -97,3 +97,19 @@ PostgreSQL 17 + Mailpit 在本機 loopback，使用隨機生成、忽略且權�
 - 雲端 install_script/start_skill 已確認更新草稿，加入 db:verify:cms、兩個 migrations、示範seed保護與CMS啟動／測試說明；未發布、未驗證新任務還原。Git 僅本機提交，無推送或正式部署。
 
 文字區塊 CMS 基礎已實作。完整富文字 WYSIWYG、獨立分類／標籤 CRUD、媒體上傳、頁面／Banner／導覽 CMS、活動與聯絡管理、系統設定及正式內容審閱仍未完成；不宣稱 Phase 4 全部完成。
+
+# Phase 4 活動與報名驗證（2026-10-13，Asia/Taipei）
+
+- 三個新增模型 EventRecord/Registration/Change、18 models、第三個 migration，時段／截止／名額／version／check-in pair CHECK、unique 與索引。初次 migration 的 SQL comment 分號被本機 Pg adapter 誤拆，已核對三張本次新表0rows，僅撤回自己新增的空表/enum，使用官方 markMigrationRolledBack 保留失敗紀錄，修正後 apply成功、重跑0pending；既有會員／文章資料未重置。
+- 空白獨立 DB 驗证三個 migration、9篇文章／3場活動、0個預設帳號；seed 重跑保留文章與活動的修改／下架，9個業務CHECK及會員partial unique完整。只刪除自己建立的測試 DB。
+- TypeScript、Lint、production build通過；完整14 unit+52 E2E/API desktop/mobile回歸通過，零跳過／未執行。原44個回歸保留，新增8個活動整合與2個validation/CSV unit。
+- 後台表單建立草稿404／公開200、會員報名與取消 UI、重新報名、名單、CSV匯出、活動取消與歷程／通知／audit均真實操作PostgreSQL。CSV曾因Next Link預抓而多記audit，改為普通下載anchor後確認只有實際匯出新增紀錄，沒有放寬測試斷言。
+- 一個名額的3人併發僅1CONFIRMED+2WAITLISTED；重複409，FIFO候補遞補；取消後重報排序回新隊尾，併發重報201/409，仍不超額。實際Membership檢查、失效候補取消並遞補下一人、截止後拒絕報名／取消不遞補、已報名規則鎖定409、容量不可低於已確認409。
+- 最新資格邊界：有效期等於活動開始視為不足，expiry必須晚於start；調整後重新build並單獨重跑8個活動desktop/mobile檢查全部通過。該次 --no-deps僅為受影響活動檢查，不冒充另一輪完整52tests。
+- Staff可名單／CSV／報到，不能新增／編輯活動；Editor/Member403；私人名單不洩漏其他會員信箱。報到時段409、跨活動／不存在registration404、成功200／重複409、已報到不能取消；CSV公式／引號／換行與no-store、Origin403、audit寫入均驗證。
+- 首頁、列表、月曆、全文、條件sitemap全部讀活動DB、無fixture fallback；關閉／開放／截止／取消狀態一致，草稿／下架公開URL真404。種子活動維持報名關閉，沒有虛構正式開放或收费。
+- 最新加密backup在獨立DB實際還原3 completed migrations；原DB未覆寫。Source/browser資產無generated signing secret／DB password／backup key，.env.local 0600。Docker compose正式配置只做quiet syntax check，沒有部署。
+- 1440px／390px活動後台截圖已檢視，無body橫向overflow；視覺檢查專用暫時角色已恢復，自己啟動的server已停止，確認3000連線拒絕。
+- start_skill更新草稿已確認保存，加入活動角色、global flag、示範guard、三個migration與測試／seed保護；install_script保留已驗證通用流程。未發布、未驗證新任務restore；程式只做本機commit，未推送或正式部署。
+
+未完成：附件／媒體安全上傳、QR身分查驗、正式活動規則／收費退款、可靠email outbox、大量營運容量／效能／MFA／完整privacy operations；聯絡追蹤與系統設定亦未完成。全部報名仍為開發示範，不宣稱完整Phase 4或正式營運驗收。

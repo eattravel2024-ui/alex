@@ -53,11 +53,19 @@ try {
     'SELECT count(*)::int AS count FROM "ArticleRecord"',
   );
   if (
-    migrations.rows[0].count !== 2 ||
+    migrations.rows[0].count !== 3 ||
     users.rows[0].count !== 0 ||
     articles.rows[0].count !== 9
   )
     throw new Error("Fresh schema/seed counts mismatch.");
+  const events = await isolated.query(
+    'SELECT count(*)::int AS count FROM "EventRecord"',
+  );
+  if (events.rows[0].count !== 3) throw new Error("Event seed count mismatch.");
+  await isolated.query(
+    "UPDATE \"EventRecord\" SET title=$1,status='ARCHIVED' WHERE slug='everyday-health-talk'",
+    ["保留活動修改"],
+  );
   await isolated.query(
     "UPDATE \"ArticleRecord\" SET title=$1,status='ARCHIVED',\"publishAt\"=NULL WHERE slug='everyday-health'",
     ["保留 CMS 修改驗證"],
@@ -71,16 +79,24 @@ try {
     preserved.rows[0].status !== "ARCHIVED"
   )
     throw new Error("Seed overwrote CMS content.");
+  const keptEvent = await isolated.query(
+    "SELECT title,status FROM \"EventRecord\" WHERE slug='everyday-health-talk'",
+  );
+  if (
+    keptEvent.rows[0].title !== "保留活動修改" ||
+    keptEvent.rows[0].status !== "ARCHIVED"
+  )
+    throw new Error("Seed overwrote event changes.");
   const checks = await isolated.query(
-    "SELECT count(*)::int AS count FROM pg_constraint WHERE conname IN ('membership_valid_period','application_positive_version','article_positive_version','article_publication_time')",
+    "SELECT count(*)::int AS count FROM pg_constraint WHERE conname IN ('membership_valid_period','application_positive_version','article_positive_version','article_publication_time','event_valid_period','event_valid_deadline','event_valid_capacity','event_positive_version','event_checkin_pair')",
   );
   const partial = await isolated.query(
     "SELECT indexname FROM pg_indexes WHERE indexname='application_one_open_per_user'",
   );
-  if (checks.rows[0].count !== 4 || partial.rows.length !== 1)
+  if (checks.rows[0].count !== 9 || partial.rows.length !== 1)
     throw new Error("Business constraints missing.");
   console.log(
-    "Isolated CMS schema verified: 2 migrations, 9 demo articles, no default users; seed preserves edits and archive state, member constraints retained.",
+    "Isolated CMS schema verified: 3 migrations, 9 demo articles, 3 demo events, no default users; seed preserves edits and archive state, member constraints retained.",
   );
 } finally {
   if (isolated) await isolated.end();

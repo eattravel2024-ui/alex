@@ -2,7 +2,7 @@ import Image from "next/image";
 import { ActionLink, SectionHeading } from "@/components/ui";
 import Link from "next/link";
 import { ArticleCard } from "@/components/content/article-card";
-import { eventRecords } from "@/lib/catalog";
+import { listPublicEvents } from "@/lib/services/event-service";
 import { listPublishedArticles } from "@/lib/services/content-service";
 export const dynamic = "force-dynamic";
 import { pageMetadata } from "@/lib/seo";
@@ -12,9 +12,10 @@ export const metadata = pageMetadata(
   "/",
 );
 export default async function Home() {
-  const [newsArticles, knowledgeArticles] = await Promise.all([
+  const [newsArticles, knowledgeArticles, eventRecords] = await Promise.all([
     listPublishedArticles("news", 3),
     listPublishedArticles("knowledge", 3),
+    listPublicEvents({}, 3),
   ]);
   return (
     <>
@@ -207,7 +208,7 @@ export default async function Home() {
               <p>
                 活動與課程預告
                 <br />
-                <small>以下為示範活動，尚未開放報名。</small>
+                <small>以下為示範活動，報名狀態依活動顯示。</small>
               </p>
             </div>
           </div>
@@ -225,9 +226,9 @@ export default async function Home() {
                   <h3>
                     <Link href={`/events/${event.slug}`}>{event.title}</Link>
                   </h3>
-                  <p>示範活動 · {event.startsAt.slice(0, 10)} · 報名未開放</p>
+                  <p>示範活動 · {event.startsAt.slice(0, 10)}</p>
                 </div>
-                <span className="event-status">籌備中</span>
+                <span className="event-status">{event.bookingLabel}</span>
               </article>
             ))}
           </div>

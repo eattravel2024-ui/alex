@@ -1,7 +1,7 @@
 import { config } from "dotenv";
 import pg from "pg";
 import { randomUUID } from "node:crypto";
-import { allArticles } from "../src/lib/catalog.ts";
+import { allArticles, eventRecords } from "../src/lib/catalog.ts";
 config({ path: ".env.local", quiet: true });
 if (
   process.env.DEVELOPMENT_MODE !== "true" ||
@@ -50,8 +50,26 @@ try {
       ],
     );
   }
+  for (const [index, e] of eventRecords.entries()) {
+    await pool.query(
+      `INSERT INTO "EventRecord" (id,slug,title,summary,category,format,location,agenda,"startsAt","endsAt","registrationDeadline",status,eligibility,capacity,"registrationEnabled","waitlistEnabled",version,"isDemo","updatedAt") VALUES ($1,$2,$3,$4,$5,$6,$7,$8::jsonb,$9,$10,$9,'PUBLISHED',$11,20,false,false,1,true,now()) ON CONFLICT (slug) DO NOTHING`,
+      [
+        randomUUID(),
+        e.slug,
+        e.title,
+        e.summary,
+        e.category,
+        e.format,
+        e.location,
+        JSON.stringify(e.agenda),
+        e.startsAt,
+        e.endsAt,
+        index === 2 ? "MEMBER" : "ACCOUNT",
+      ],
+    );
+  }
   console.log(
-    "Demo membership types and articles seeded without overwriting existing records; no user/admin accounts or default passwords created.",
+    "Demo membership types, articles and events seeded without overwriting existing records; no user/admin accounts or default passwords created.",
   );
 } finally {
   await pool.end();

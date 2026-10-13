@@ -16,7 +16,7 @@ npm run db:generate
 npm run dev -- --hostname 0.0.0.0
 ```
 
-首頁 `/`、協會 `/about`、消息 `/news`、知識 `/knowledge`、活動 `/events`、聯絡 `/contact`，法律草案 `/privacy`、`/terms`。文章與活動支援 `[slug]` 全文頁；搜尋、分類、標籤、分頁與月曆以 query string 保存。文章已接 PostgreSQL CMS，保留示範聲明；活動仍來自本地 fixtures，會員資料由 PostgreSQL 保存。會員功能需要本機 PostgreSQL 與 Mailpit。`dev:setup` 隨機產生未追蹤的 `.env.local`（已有檔案不覆寫），啟動兩個服務；不建立預設管理員或共用密碼。開發來源必須與 BETTER_AUTH_URL 相符，預設是 `http://127.0.0.1:3000`。若使用受限雲端環境，可設定 `npm_config_cache=/workspace/.npm-cache`。
+首頁 `/`、協會 `/about`、消息 `/news`、知識 `/knowledge`、活動 `/events`、聯絡 `/contact`，法律草案 `/privacy`、`/terms`。文章與活動支援 `[slug]` 全文頁；搜尋、分類、標籤、分頁與月曆以 query string 保存。文章、活動與會員已由 PostgreSQL 保存，保留開發示範聲明。會員功能需要本機 PostgreSQL 與 Mailpit。`dev:setup` 隨機產生未追蹤的 `.env.local`（已有檔案不覆寫），啟動兩個服務；不建立預設管理員或共用密碼。開發來源必須與 BETTER_AUTH_URL 相符，預設是 `http://127.0.0.1:3000`。若使用受限雲端環境，可設定 `npm_config_cache=/workspace/.npm-cache`。
 
 ## 檢查
 
@@ -64,7 +64,7 @@ Docker volumes 不假定隨雲端任務保存。`npm run db:backup` 在 `.local/
 
 ## 管理後台（Phase 4 管理核心）
 
-`/admin` 提供真實資料統計；`/admin/applications` 為申請審核；`/admin/members` 為帳號搜尋與停用／恢復；`/admin/audit` 為唯讀稽核紀錄。角色限制見 docs/API.md。會員中心會對有權限的帳號顯示後台入口。文章 CMS 基礎已完成；活動、媒體與設定仍待完成。
+`/admin` 提供真實資料統計；`/admin/applications` 為申請審核；`/admin/members` 為帳號搜尋與停用／恢復；`/admin/audit` 為唯讀稽核紀錄。角色限制見 docs/API.md。會員中心會對有權限的帳號顯示後台入口。文章 CMS 基礎已完成；活動管理基礎已完成；媒體與設定仍待完成。
 
 開發環境先註冊並完成本機 Mailpit 信箱驗證，再以**自己的既有開發帳號**執行 `npm run dev:admin -- <已驗證的開發帳號信箱>`。這會提升該帳號為 Super Admin 並留下稽核紀錄，不建立帳號、不產生密码；拒絕 production／非 loopback DB。此命令不納入自動 install/seed；正式角色初始化流程仍待制定。
 
@@ -83,3 +83,15 @@ Docker volumes 不假定隨雲端任務保存。`npm run db:backup` 在 `.local/
 WASM 增量 migration 可用 `npm run db:migrate:local -- --create <name> --from-schema <verified-previous-schema-file>` 產生 SQL；只產生檔案，不立即套用。必須檢閱 SQL、保留手工業務約束，再執行不带 --create 的 migration 指令。此為 development-only helper，不偵測實體 DB drift，也不替代正式 native Prisma migration tooling。
 
 E2E 的 CMS projects 在既有前台／會員 projects 通過後執行，避免測試中的公開內容干擾既有 fixture 數量；每個 CMS test 完成後將自己的文章下架並恢復專用角色。未執行的 dependency projects 或 tests 不算通過。
+
+## 活動與報名（Phase 4 本機核心）
+
+`/admin/events` 提供活動搜尋／狀態篩選、分頁與報名名單；Admin/Super Admin 可建立／編輯活動、公開／取消／下架、調整名額与報名開關。Staff 僅能查看名單、匯出及報到，不能編輯活動；Editor 無報名個資權限。報名 CSV 防止試算表公式執行，匯出會記錄 audit；下載使用一般連結，避免框架預抓造成虛假匯出紀錄。
+
+公開活動、首頁與月曆皆讀資料庫，取消活動保留說明，草稿／下架回404，沒有 fixtures fallback。三個示範活動首次 seed 公開但關閉報名，重跑不覆寫後台編輯。只有本機 `EVENT_REGISTRATIONS_ENABLED=true` 且活動開放、未截止／未開始、帳號符合資格時可報名；示範活動在非 development 環境拒絕報名。舊 `.env.local` 不覆寫；如尚未有這個開關，請自行補上本機測試旗標，不要更換任何密鑰。
+
+`/member/events`：本人報名／候補／取消、最近20筆狀態歷程、報到狀態。額滿可依活動設定候補，採資料庫 sequence 排序；取消／增加名額時遞補，重新檢查帳號、會員狀態與資格期限。會員限定不是 role=MEMBER，而是真實 Membership 有效、類別啟用且涵蓋活動開始；示範資格只在 development 可用。
+
+所有變更使用活動 row lock，名額、報名、通知、狀態歷程與 audit 同一交易，不能超額或重複報名。已報名時時間／資格固定，名額不能低於已確認人數；草稿／下架前須先取消全部報名。會員取消限活動開始前且未報到；截止後取消不再遞補。報到只限開始前兩小時至結束，拒絕候補、重複報到、跨活動紀錄與失效資格。
+
+此為測試報名，沒有實際活動、收費／退款、附件上傳、QR 身分驗證或可靠寄信 outbox。名額與候補各限1000，CSV最多2000筆歷史紀錄（超過會明確回413，不偷偷截斷）；大量營運量、正式規則與部署仍需後續驗證。`db:verify:cms` 現在從空 DB 驗證三個 migrations、9篇文章與3個活動，以及 seed 保留修改與會員約束。

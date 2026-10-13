@@ -1,29 +1,43 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageHeading } from "@/components/content/page-heading";
-import { eventRecords } from "@/lib/catalog";
+import { currentUser } from "@/lib/server/access";
+import { db } from "@/lib/server/db";
+import { EventAction } from "@/components/member/event-actions";
+import { registrationLabels } from "@/lib/event-validation";
 import { getEvent } from "@/lib/services/content-service";
 import { pageMetadata } from "@/lib/seo";
-export function generateStaticParams() {
-  return eventRecords.map((e) => ({ slug: e.slug }));
-}
+export const dynamic = "force-dynamic";
 export async function generateMetadata({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
-  const e = getEvent((await params).slug);
-  return e
-    ? pageMetadata(e.title, e.summary, `/events/${e.slug}`)
-    : { title: "找不到活動" };
+  const record = await getEvent((await params).slug);
+  if (!record) notFound();
+  return pageMetadata(record.title, record.summary, `/events/${record.slug}`);
 }
 export default async function Page({
   params,
 }: {
   params: Promise<{ slug: string }>;
 }) {
-  const e = getEvent((await params).slug);
-  if (!e) notFound();
+  const record = await getEvent((await params).slug);
+  if (!record) notFound();
+  const e = record.view,
+    user = await currentUser();
+  const [own, confirmed] = await Promise.all([
+    user
+      ? db.eventRegistration.findUnique({
+          where: { eventId_userId: { eventId: record.id, userId: user.id } },
+          select: { status: true, checkedInAt: true },
+        })
+      : null,
+    db.eventRegistration.count({
+      where: { eventId: record.id, status: "CONFIRMED" },
+    }),
+  ]);
+  const open = record.bookingLabel === "開發測試報名開放中";
   const format = (date: string) =>
     new Intl.DateTimeFormat("zh-TW", {
       timeZone: "Asia/Taipei",
@@ -48,7 +62,7 @@ export default async function Page({
             <h2>活動介紹</h2>
             <p className="section-description">
               {e.summary}{" "}
-              活動內容與講師資訊須於取得協會正式資料後確認。本頁目前用於驗證活動資訊的瀏覽流程。
+              活動內容與講師資訊須於取得協會正式資料後確認。報名與候補僅供本機開發測試；不接受付款。
             </p>
             <h2 className="subsection-title">示範議程</h2>
             <ol className="agenda-list">
@@ -85,13 +99,34 @@ export default async function Page({
               <dt>示範資格</dt>
               <dd>{e.eligibility}</dd>
               <dt>名額、費用與截止日期</dt>
-              <dd>正式規則待確認</dd>
+              <dd>
+                {record.capacity} 人 · 開發測試不收費 · 截止{" "}
+                {format(record.registrationDeadline.toISOString())}
+              </dd>
+              <dt>目前確認名額</dt>
+              <dd>
+                {confirmed} / {record.capacity}
+              </dd>
             </dl>
             <div className="registration-status">
-              <strong>報名尚未開放</strong>
-              <p>
-                報名、候補及取消功能將於資料庫與會員授權完成後提供。此頁不接受付款。
-              </p>
+              <strong>{record.bookingLabel}</strong>
+              <p>所有紀錄為開發示範，不代表真實活動或正式資格；無付款功能。</p>
+              {own && own.status !== "CANCELLED" ? (
+                <>
+                  <p>
+                    你的狀態：{registrationLabels[own.status]}
+                    {own.checkedInAt ? " · 已報到" : ""}
+                  </p>
+                  <Link className="text-link" href="/member/events">
+                    查看我的活動／取消 ↗
+                  </Link>
+                </>
+              ) : open ? (
+                <EventAction eventId={record.id} guest={!user} />
+              ) : null}
+              {record.waitlistEnabled && (
+                <p>額滿時可候補；依加入順序遞補，資格會再次檢查。</p>
+              )}
             </div>
           </aside>
         </div>
