@@ -1,5 +1,19 @@
 import { z } from "zod";
 export const pageKeys = z.enum(["home", "about"]);
+export const heroImages = ["/images/hero.svg", "/images/living.svg", "/images/nutrition.svg", "/images/mind.svg"] as const;
+export const heroDestinations = ["/about", "/events", "/news", "/knowledge", "/member", "/contact"] as const;
+export const heroSchema = z.object({
+  image: z.enum(heroImages),
+  alt: z.string().trim().min(2).max(160),
+  primary: z.object({ label: z.string().trim().min(1).max(30), href: z.enum(heroDestinations) }).strict(),
+  secondary: z.object({ label: z.string().trim().min(1).max(30), href: z.enum(heroDestinations) }).strict(),
+}).strict();
+export const heroDefaults = {
+  image: "/images/hero.svg" as const,
+  alt: "綠色山丘、日光與枝葉構成的健康生活主視覺插畫",
+  primary: { label: "認識協會", href: "/about" as const },
+  secondary: { label: "探索活動與課程", href: "/events" as const },
+};
 export const pageContentSchema = z.object({
   title: z.string().trim().min(2).max(160),
   description: z.string().trim().min(2).max(600),
@@ -7,7 +21,9 @@ export const pageContentSchema = z.object({
     id: z.string().regex(/^[a-z]+$/),
     heading: z.string().trim().min(2).max(120),
     body: z.string().trim().min(2).max(3000),
+    visible: z.boolean().optional(),
   }).strict()).min(3).max(6),
+  hero: heroSchema.optional(),
 }).strict();
 export type PageContent = z.infer<typeof pageContentSchema>;
 export type PageKey = z.infer<typeof pageKeys>;
@@ -36,7 +52,12 @@ export const pageDefaults: Record<PageKey, PageContent> = {
 export function validatePageContent(key: PageKey, value: unknown) {
   const data = pageContentSchema.parse(value);
   const expected = pageDefaults[key].sections.map((s) => s.id);
-  if (data.sections.length !== expected.length || data.sections.some((s, i) => s.id !== expected[i]))
-    throw new Error("Page section identifiers and order are fixed.");
+  const ids = data.sections.map((s) => s.id);
+  if (ids.length !== expected.length || new Set(ids).size !== expected.length || ids.some((id) => !expected.includes(id)))
+    throw new Error("Page section identifiers are fixed and unique.");
+  if (key === "home" && data.sections.some((s, i) => s.id !== expected[i] || s.visible === false))
+    throw new Error("Home section order and visibility are fixed.");
+  if (key === "about" && (data.hero || !data.sections.some((s) => s.visible !== false)))
+    throw new Error("About requires at least one visible section and no hero controls.");
   return data;
 }

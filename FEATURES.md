@@ -84,6 +84,6 @@
 
 ## 首頁與協會介紹文字CMS
 
-完成：/admin/pages/home、/admin/pages/about，Editor/Admin/Super Admin授權、strict內容與章節ID／順序驗證、草稿／安全文字私人預覽／發布／修訂還原草稿、版本409、交易鎖與revision/audit。首頁主標題與描述、理念／服務／會員三組主要標題與說明，協會介紹主標題／描述與六章文字可編輯。公開頁面只讀published；未有發布版本時使用原始示範文字，不吞掉DB錯誤。圖片、三張服務卡片、使命卡片、Banner、導覽／Footer、區塊排序／顯示與SEO欄位尚未提供管理。
+完成：/admin/pages/home、/admin/pages/about，Editor/Admin/Super Admin授權、strict內容與章節ID／順序驗證、草稿／安全文字私人預覽／發布／修訂還原草稿、版本409、交易鎖與revision/audit。首頁主標題與描述、理念／服務／會員三組主要標題與說明，協會介紹主標題／描述與六章文字可編輯。公開頁面只讀published；未有發布版本時使用原始示範文字，不吞掉DB錯誤。新增首頁內建主視覺選圖／替代文字／兩個CTA，以及協會介紹章節排序／顯示控制。三張服務卡片、使命卡片、完整Banner輪播、媒體上傳、導覽／Footer與SEO欄位尚未提供管理。
 
 第五個migration新增SitePage/SitePageRevision，22模型，固定home/about key與publication pair CHECK。最近10筆修訂可還原成新草稿，不自動發布；保持示範聲明與法律資訊提示。VPS需先備份／migration／build更新，尚未由agent部署。

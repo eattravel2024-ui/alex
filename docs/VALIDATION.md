@@ -167,3 +167,9 @@ Typecheck、lint及desktop/mobile孤立整合2項通過（15.4秒）。重設時
 完整Playwright runner實際76項全通過（2.8分鐘），無skip。新增頁面desktop/mobile各1項涵蓋草稿不公開、五角色／Origin／strict欄位／固定章節／64KiB限制、私人預覽、發布UI、React文字XSS防護、跨頁revision拒絕、還原只草稿、併發版本200/409及revision/audit一致。頁面專案在既有全部專案之後執行，mobile依desktop，避免共用home/about資料的跨專案衝突；finally還原原始頁面snapshot與角色，僅刪自己的revision。既有前台、文章、活動、聯絡、會員與示範管理員重設／改名也重跑通過。
 
 首頁CMS僅主標題／描述與理念、服務、會員主要文字；協會六章內容，私人預覽為文字預覽。圖片、版型、卡片、導覽／Footer、顯示排序與SEO未納入本增量。VPS尚未更新，必須備份／第五個migration／build/restart，不宣稱已部署。使用者已在前一版確認admin@cchm.tw登入成功，未保存其密碼。
+
+## 2026-10-14 頁面CMS控制擴充（依使用者要求不操作VPS）
+
+新增首頁內建四圖選擇、alt、兩個CTA及目的地白名單；介紹六章完整ID集合可排序／顯示，至少一章可見，法律提示獨立保留。沿用既有JSON，schema與migration檔案未改；沒有執行backup、migration或VPS部署。原始快照缺visible/hero仍可讀取還原，缺visible視true、hero用原始設定。
+
+18單元測試全通過，typecheck/lint/production build通過。受影響頁面CMS整合以pages-desktop --no-deps與pages-mobile --no-deps依序執行，各1項通過（7.3／7.6秒），涵蓋既有角色／草稿／restore／版本與新UI排序隱藏／法律提示／首頁插圖CTA／草稿未發布不改前台／javascript URL拒絕。測試finally還原原始頁面snapshot與角色。這是針對此增量的2項整合驗證，不宣稱重跑上輪76項全套。

@@ -76,3 +76,5 @@ CLI demo-admin不是public endpoint，只允許cchm_demo/test.cchm.tw及明確�
 依使用者指定，demo CLI額外允許唯一真實形式的登入識別碼admin@cchm.tw。操作員顯式reset/previous-email才能由保留示範識別碼更名；目標既存拒絕，保留UUID與權限，同交易稽核/撤銷Session。emailVerified仍表示手動管理核准，不冒稱SMTP／信箱所有權驗證，不接受其他真實信箱。
 
 頁面CMS每一個API與私人編輯／預覽頁驗Editor/Admin/Super Admin，strict schema與固定章節不允許插入HTML／自訂ID。公開service僅返回published，draft不作公開fallback；初始無發布版本才使用原始示範文字，DB錯誤不隱藏。page-key transaction lock與version防覆寫，revision／audit原子保存，restore不自動發布。示範聲明與正式資訊待確認提示不由CMS移除；無圖片／檔案／外部連結欄位。
+
+首頁CTA與插圖設定使用固定站內路徑與既有本地圖片白名單，沒有任意href/src欄位；about章節排序只允許固定完整ID集合，隱藏介紹章不移除固定法律資訊提示。舊JSON snapshot安全文字及草稿／發布隔離保持。新增JSON欄位不需要新的schema migration。

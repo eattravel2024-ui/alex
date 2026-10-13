@@ -96,3 +96,9 @@ PATCH /api/admin/pages/[key]，key=home|about，Editor/Admin/Super Admin；Origi
 交易advisory lock保持版本、draft、revision與PAGE_SAVED/PUBLISHED/RESTORED audit一致；PUBLISH才更新published與publishedAt，SAVE/RESTORE保留公開版本。RESTORE修訂必須屬於當前頁面，否則404，不接受其他頁面修訂；還原也新增版本。公開service不讀draft作輸出，只有沒有published的頁面用原始固定示範文字，不提供文章／活動DB故障fallback。
 
 私人文字預覽與編輯頁皆重驗權限，內容以React文字渲染，不支援HTML／script／附件／圖片路徑。沒有公開寫入或私人草稿讀取API。metadata／圖片／導覽等尚非CMS欄位。
+
+## 頁面CMS顯示控制擴充
+
+content.sections新增optional visible:boolean，未指定視為true。about可調整完整六章順序與顯示，ID不能重複／遺漏，至少一章可見；home三章順序與顯示仍固定。intro隱藏也不移除正式法律資訊待確認提示，章節導覽只列可見章節。
+
+home可新增optional hero:{image,alt,primary:{label,href},secondary:{label,href}}。image白名單hero/living/nutrition/mind四張內建SVG，alt2–160字，label1–30字，href只允許/about,/events,/news,/knowledge,/member,/contact；拒絕任意圖片／外連／執行型URL／API網址。about不能包含hero。舊revision缺新欄位仍可還原，home用heroDefaults。儲存／發布／版本／權限／稽核語義不變，無新資料表或migration。

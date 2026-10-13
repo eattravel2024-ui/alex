@@ -20,7 +20,7 @@ export async function savePage(actorId: string, key: PageKey, version: number, a
     }
     let content: PageContent;
     try { content = validatePageContent(key, value); }
-    catch { throw new ServiceError(400, "INVALID_PAGE", "頁面內容格式無效，不能更改章節識別碼或順序。"); }
+    catch { throw new ServiceError(400, "INVALID_PAGE", "頁面內容無效。章節不可重複或遺漏，協會介紹至少顯示一章；首頁版型與連結目的地須使用提供的選項。"); }
     const snapshot = content as Prisma.InputJsonValue;
     const published = action === "PUBLISH" ? { published: snapshot, publishedAt: new Date() } : {};
     const row = previous

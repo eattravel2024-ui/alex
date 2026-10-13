@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { publicPage } from "@/lib/services/site-page-service";
+import { heroDefaults } from "@/lib/site-pages";
 import { ActionLink, SectionHeading } from "@/components/ui";
 import Link from "next/link";
 import { ArticleCard } from "@/components/content/article-card";
@@ -19,6 +20,7 @@ export default async function Home() {
     listPublicEvents({}, 3),
     publicPage("home"),
   ]);
+  const hero = content.hero ?? heroDefaults;
   return (
     <>
       <div className="demo-notice">
@@ -34,9 +36,9 @@ export default async function Home() {
             <h1 className="cms-page-text">{content.title.split("\n").map((line, i, lines) => <span key={i}>{i > 0 && <br />}{i === lines.length - 1 ? <em>{line}</em> : line}</span>)}</h1>
             <p className="hero-description cms-page-text">{content.description}</p>
             <div className="actions">
-              <ActionLink href="/about">認識協會</ActionLink>
-              <ActionLink href="/events" secondary>
-                探索活動與課程
+              <ActionLink href={hero.primary.href}>{hero.primary.label}</ActionLink>
+              <ActionLink href={hero.secondary.href} secondary>
+                {hero.secondary.label}
               </ActionLink>
             </div>
             <div className="hero-caption">
@@ -46,8 +48,8 @@ export default async function Home() {
           </div>
           <div className="hero-art">
             <Image
-              src="/images/hero.svg"
-              alt="綠色山丘、日光與枝葉構成的健康生活主視覺插畫"
+              src={hero.image}
+              alt={hero.alt}
               width={720}
               height={760}
               priority

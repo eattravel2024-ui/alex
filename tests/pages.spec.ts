@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { randomUUID } from "node:crypto";
 import { sql, createVerified } from "./auth-helpers";
-import { pageDefaults } from "../src/lib/site-pages";
+import { pageDefaults, heroDefaults } from "../src/lib/site-pages";
 const origin = "http://127.0.0.1:3000";
 test("頁面草稿隔離、發布UI、私人預覽、角色、還原與併發版本交易", async ({ page }) => {
   const actor = await createVerified(page.request);
@@ -27,7 +27,7 @@ test("頁面草稿隔離、發布UI、私人預覽、角色、還原與併發版
     }
     expect((await page.request.patch("/api/admin/pages/about", { headers: { origin: "https://invalid.example" }, data: { action: "SAVE", version, content: draft } })).status()).toBe(403);
     expect((await page.request.patch("/api/admin/pages/about", { headers, data: { action: "SAVE", version, content: { ...draft, role: "ADMIN" } } })).status()).toBe(400);
-    expect((await page.request.patch("/api/admin/pages/about", { headers, data: { action: "SAVE", version, content: { ...draft, sections: [...draft.sections].reverse() } } })).status()).toBe(400);
+    expect((await page.request.patch("/api/admin/pages/about", { headers, data: { action: "SAVE", version, content: { ...draft, sections: draft.sections.map(() => draft.sections[0]) } } })).status()).toBe(400);
     expect((await page.request.patch("/api/admin/pages/about", { headers, data: { action: "SAVE", version, content: { ...draft, description: "x".repeat(70000) } } })).status()).toBe(413);
     await page.goto("/admin/pages/about");
     await page.getByLabel("頁面主標題").fill("公開介紹 " + marker);
@@ -55,6 +55,37 @@ test("頁面草稿隔離、發布UI、私人預覽、角色、還原與併發版
     const audits = await sql('SELECT action FROM "AuditLog" WHERE "actorId"=$1 AND "entityId"=\'about\'', [actor.id]);
     expect(audits).toHaveLength(4);
     expect(await (await page.request.get("/about")).text()).toContain("公開介紹 " + marker);
+    await page.goto("/admin/pages/about");
+    await page.locator('[data-section="intro"]').getByRole("checkbox").uncheck();
+    await page.locator('[data-section="team"]').getByRole("checkbox").uncheck();
+    await page.locator('[data-section="history"]').getByRole("button", { name: "上移", exact: true }).click();
+    await page.locator('[data-section="history"]').getByRole("button", { name: "上移", exact: true }).click();
+    const ordered = page.waitForResponse((r) => r.url().endsWith("/api/admin/pages/about") && r.request().method() === "PATCH");
+    await page.getByRole("button", { name: "發布目前內容" }).click();
+    expect((await ordered).status()).toBe(200);
+    await page.goto("/about");
+    await expect(page.locator("#intro, #team")).toHaveCount(0);
+    await expect(page.locator(".about-side-nav a").first()).toHaveAttribute("href", "#history");
+    await expect(page.getByText("本頁不推定任何正式認證或組織資格。", { exact: false })).toBeVisible();
+    await page.goto("/admin/pages/home");
+    await page.getByLabel("主視覺插圖").selectOption("/images/living.svg");
+    await page.getByLabel("主要按鈕文字").fill("查看活動");
+    await page.getByLabel("主要按鈕目的地").selectOption("/events");
+    await page.getByLabel("次要按鈕文字").fill("詢問合作");
+    await page.getByLabel("次要按鈕目的地").selectOption("/contact");
+    const heroSaved = page.waitForResponse((r) => r.url().endsWith("/api/admin/pages/home") && r.request().method() === "PATCH");
+    await page.getByRole("button", { name: "儲存草稿" }).click();
+    expect((await heroSaved).status()).toBe(200);
+    expect(await (await page.request.get("/")).text()).not.toContain("詢問合作");
+    await page.reload();
+    const heroPublished = page.waitForResponse((r) => r.url().endsWith("/api/admin/pages/home") && r.request().method() === "PATCH");
+    await page.getByRole("button", { name: "發布目前內容" }).click();
+    expect((await heroPublished).status()).toBe(200);
+    await page.goto("/");
+    await expect(page.locator(".hero .actions").getByRole("link", { name: "查看活動" })).toHaveAttribute("href", "/events");
+    await expect(page.locator(".hero .actions").getByRole("link", { name: "詢問合作" })).toHaveAttribute("href", "/contact");
+    await expect(page.locator(".hero-art img")).toHaveAttribute("src", /living\.svg/);
+    expect((await page.request.patch("/api/admin/pages/home", { headers, data: { action: "SAVE", version: homeVersion + 3, content: { ...pageDefaults.home, hero: { ...heroDefaults, primary: { label: "不安全", href: "javascript:alert(1)" } } } } })).status()).toBe(400);
   } finally {
     for (const [key, row] of originals) {
       await sql('DELETE FROM "SitePageRevision" WHERE "pageKey"=$1 AND "actorId"=$2', [key, actor.id]);
