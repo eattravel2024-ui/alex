@@ -138,7 +138,7 @@ curl --fail --head https://test.cchm.tw/contact
 
 示範帳號的emailVerified由主機管理者手動設true以允許此保留識別碼登入，沒有寄出驗證信、不代表信箱所有權已驗證。terms/privacy consent仍false，不虛構正式政策同意。建立User／Better Auth credential hash／DEMO_ADMIN_BOOTSTRAPPED audit同交易，advisory lock防重複初始化。正式管理員應另走身分確認／MFA／寄信／政策流程。
 
-先pull最新版（不需migration或web重建），在VPS root終端建立私密密碼檔。密碼不作命令參數、不顯示、不貼聊天；至少12字元，含英文與數字。以下互動區塊需按提示輸入兩次；既有檔案不覆寫。
+先pull最新版（初始化CLI本身不需migration；同步8字元密碼規則時需重新build web），在VPS root終端建立私密密碼檔。密碼不作命令參數、不顯示、不貼聊天；至少8字元，含英文與數字。以下互動區塊需按提示輸入兩次；既有檔案不覆寫。
 
 ```sh
 cd /opt/health-association/app
@@ -154,8 +154,8 @@ password = getpass.getpass('設定示範管理員密碼：')
 confirmation = getpass.getpass('再次輸入密碼：')
 if password != confirmation:
     raise SystemExit('兩次密碼不同，未建立檔案。')
-if not 12 <= len(password) <= 128 or not re.search('[A-Za-z]', password) or not re.search('[0-9]', password):
-    raise SystemExit('密碼需12至128字元，包含英文與數字。')
+if not 8 <= len(password) <= 128 or not re.search('[A-Za-z]', password) or not re.search('[0-9]', password):
+    raise SystemExit('密碼需8至128字元，包含英文與數字。')
 with os.fdopen(os.open(p, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600), 'w') as f:
     f.write(password + '\n')
 print('私密密碼檔已建立，密碼未顯示。')

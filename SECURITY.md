@@ -68,3 +68,5 @@ Staff/Admin/Super Admin才能讀聯絡個資與note，Editor/Member不可讀，�
 CLI demo-admin不是public endpoint，只允許cchm_demo/test.cchm.tw及明確指定的隨機隔離測試DB；需要顯式確認與owner-only regular password file，O_NOFOLLOW/fstat拒絕symlink、其他使用者所有權、group/other權限與過大檔案。密碼不接受命令列字串、不print/hash輸出，使用Better Auth官方hashPassword；不保證JS記憶體字串安全清零。
 
 首次初始化以advisory transaction lock檢查任何管理角色／重複email，拒絕覆寫；新增User/Account/AuditLog原子交易。emailVerified為保留@example.test識別碼的操作者手動核准，不是SMTP驗證；不更改政策／signup flags，consentfalse。這不提供正式身分確認、MFA或忘記密碼的無SMTP繞過。操作後移除暫存密碼檔，使用者自行保存密碼。
+
+依使用者明確指定，帳號密碼最低長度改為8字元、上限128，保留英文字母與數字要求；註冊、重設／修改、UI與示範初始化一致。Auth簽章密鑰與資料庫密碼規則不使用這個帳號密碼下限。

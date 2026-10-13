@@ -145,3 +145,7 @@ Typecheck、Lint、build通過。聯絡桌面／手機套件實際14項全通過
 Typecheck／ESLint通過。獨立初始化整合套件desktop/mobile實際2項全部通過（15.3秒）：隨機孤立DB套用4 migrations、缺confirm／真實信箱／錯誤環境／過寬密碼檔權限拒絕；同email既有MEMBER拒絕且不變角色；建立SUPER_ADMIN與官方hash驗證；重複執行拒絕且僅一筆audit；SMTP空白、policyfalse的獨立服務以實際Better Auth sign-in成功並讀/admin。finally停止自身server、刪除自己的孤立DB與password file，不操作現有DB帳號。
 
 首次SQL測試失敗，原因是將同一prepared parameter同時用於text與UUID欄位；改用分開的參數後上述整合套件全部通過，未放寬assertion或資料庫約束。CLI不改web source/schema，因此沿用已驗證的standalone建置作實際登入測試；本次未重新build或重跑其他70項E2E。VPS初始化仍需操作者在VPS執行，不宣稱已建立遠端帳號。
+
+## 2026-10-13 使用者指定8字元密碼
+
+同步Zod passwordSchema、Better Auth minPasswordLength、register/reset UI、password mutation提示、demo-admin CLI及DEPLOYMENT密碼檔建立區塊。16單元測試、typecheck、lint、production build通過；auth與demo-admin的桌面／手機整合實際14項全通過（44.8秒）。新增實際8字元註冊／驗證／登入／修改與7字元拒絕，初始化測試改用隨機8字元密碼並實際登入。既有重設token、Session撤銷、角色與暴力破解限制也通過。其他套件本次未重跑；無migration，VPS須pull/build/restart後生效。

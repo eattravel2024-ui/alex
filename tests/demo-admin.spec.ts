@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { randomUUID } from "node:crypto";
-import { sql, password } from "./auth-helpers";
+import { sql } from "./auth-helpers";
 import { spawn, spawnSync } from "node:child_process";
 import { mkdtempSync, writeFileSync, chmodSync, rmSync } from "node:fs";
 import { createServer } from "node:net";
@@ -12,7 +12,7 @@ test("示範管理員首次初始化、拒絕覆寫與安全限制，真實登�
   const url = new URL(process.env.DATABASE_URL!); url.pathname = "/" + name;
   const folder = mkdtempSync(".local/admin-check-");
   const file = folder + "/password";
-  const secret = password();
+  const secret = "A" + randomUUID().slice(0, 6) + "9";
   writeFileSync(file, secret + "\n", { mode: 0o600 });
   const email = "demo-admin@example.test";
   const args = ["scripts/demo-admin.mjs", "--email", email, "--name", "示範管理員", "--password-file", file, "--confirm-demo-bootstrap"];

@@ -157,12 +157,12 @@ export function AuthForm({ mode, token }: { mode: AuthMode; token?: string }) {
               mode === "login" ? "current-password" : "new-password"
             }
             required
-            minLength={mode === "register" ? 12 : 1}
+            minLength={mode === "register" ? 8 : 1}
             maxLength={128}
             {...register("password")}
           />
           {mode === "register" && (
-            <p className="field-help">至少 12 字元，包含英文字母與數字。</p>
+            <p className="field-help">至少 8 字元，包含英文字母與數字。</p>
           )}
         </div>
       )}
@@ -187,11 +187,11 @@ export function AuthForm({ mode, token }: { mode: AuthMode; token?: string }) {
               type="password"
               autoComplete="new-password"
               required
-              minLength={12}
+              minLength={8}
               maxLength={128}
               {...register("newPassword")}
             />
-            <p className="field-help">至少 12 字元，包含英文字母與數字。</p>
+            <p className="field-help">至少 8 字元，包含英文字母與數字。</p>
           </div>
           <div>
             <label htmlFor="confirm-password">確認新密碼</label>

@@ -58,7 +58,7 @@ function makeAuth() {
     verification: { storeIdentifier: "hashed" },
     emailAndPassword: {
       enabled: true,
-      minPasswordLength: 12,
+      minPasswordLength: 8,
       maxPasswordLength: 128,
       autoSignIn: false,
       requireEmailVerification: true,
@@ -161,7 +161,7 @@ function makeAuth() {
           const result = passwordSchema.safeParse(ctx.body?.newPassword);
           if (!result.success)
             throw new APIError("BAD_REQUEST", {
-              message: "新密碼至少 12 字元，且需包含字母與數字。",
+              message: "新密碼至少 8 字元，且需包含字母與數字。",
             });
         }
         if (ctx.path === "/update-user")

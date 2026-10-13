@@ -50,7 +50,7 @@ npm run test:e2e
 
 ## 會員測試與本機服務
 
-`/auth/register`、`/auth/login`、`/auth/verify`、`/auth/forgot-password`、`/auth/reset-password`；`/member` 的個人資料、安全設定、示範申請、收藏與站內通知。註冊須同意開發版政策，信箱驗證後才能登入。密碼至少 12 字且包含字母與數字。網站帳號不自動成為正式會員，示範核准沒有正式效力。
+`/auth/register`、`/auth/login`、`/auth/verify`、`/auth/forgot-password`、`/auth/reset-password`；`/member` 的個人資料、安全設定、示範申請、收藏與站內通知。註冊須同意開發版政策，信箱驗證後才能登入。密碼至少 8 字且包含字母與數字。網站帳號不自動成為正式會員，示範核准沒有正式效力。
 
 Mailpit SMTP：127.0.0.1:1025；測試收件匣：127.0.0.1:8025。只收本機測試郵件，不向真實收件人寄送。使用 `.example.test` 虛構資料，勿提交真實個資。PostgreSQL 在 loopback 5433，密碼與簽署密鑰只保存在權限 0600 的 `.env.local`。
 

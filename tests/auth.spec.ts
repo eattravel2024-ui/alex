@@ -10,6 +10,19 @@ import {
   email,
 } from "./auth-helpers";
 const origin = "http://127.0.0.1:3000";
+test("八字元密碼可註冊、驗證、登入與修改，七字元仍被拒絕", async ({ request }) => {
+  const address = email();
+  const secret = "A" + randomUUID().slice(0, 6) + "9";
+  const payload = { name: "密碼規則測試", email: address, password: secret, termsAccepted: true, privacyAccepted: true, callbackURL: "/auth/verify" };
+  expect((await post(request, "/api/auth/sign-up/email", { ...payload, password: secret.slice(0, 7) })).status()).toBe(400);
+  expect((await post(request, "/api/auth/sign-up/email", payload)).status()).toBe(200);
+  await request.get(await mailLink(request, address, "驗證電子郵件"));
+  expect((await post(request, "/api/auth/sign-in/email", { email: address, password: secret })).status()).toBe(200);
+  const next = "B" + randomUUID().slice(0, 6) + "8";
+  expect((await post(request, "/api/auth/change-password", { currentPassword: secret, newPassword: next.slice(0, 7), revokeOtherSessions: true })).status()).toBe(400);
+  expect((await post(request, "/api/auth/change-password", { currentPassword: secret, newPassword: next, revokeOtherSessions: true })).status()).toBe(200);
+  expect((await post(request, "/api/auth/sign-in/email", { email: address, password: next })).status()).toBe(200);
+});
 test("註冊、信箱驗證、登入、資料儲存、收藏與入會申請", async ({
   page,
   request,

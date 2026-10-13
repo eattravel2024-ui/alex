@@ -1,7 +1,7 @@
 import { z } from "zod";
 export const passwordSchema = z
   .string()
-  .min(12, "密碼至少 12 字元")
+  .min(8, "密碼至少 8 字元")
   .max(128, "密碼不得超過 128 字元")
   .regex(/[A-Za-z]/, "密碼需包含英文字母")
   .regex(/[0-9]/, "密碼需包含數字");

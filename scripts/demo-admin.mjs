@@ -45,8 +45,8 @@ try {
       refuse("Password file must be a regular owner-only file owned by the current user.");
     password = readFileSync(fd, "utf8").replace(/\r?\n$/, "");
   } finally { closeSync(fd); }
-  if (password.length < 12 || password.length > 128 || !/[A-Za-z]/.test(password) || !/[0-9]/.test(password))
-    refuse("Password must be 12–128 characters, including letters and digits.");
+  if (password.length < 8 || password.length > 128 || !/[A-Za-z]/.test(password) || !/[0-9]/.test(password))
+    refuse("Password must be 8–128 characters, including letters and digits.");
   const hashed = await hashPassword(password);
   password = undefined;
   pool = new pg.Pool({ connectionString: url.toString() });
