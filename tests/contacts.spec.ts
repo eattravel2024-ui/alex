@@ -41,6 +41,39 @@ test("訪客聯絡表單驗證、成功儲存與收件編號、不寄送郵件",
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });
 
+test("空白或未同意的表單提供可見中文錯誤且不送出API", async ({ page }) => {
+  let posted = false;
+  page.on("request", (r) => { if (r.url().endsWith("/api/contact") && r.method() === "POST") posted = true; });
+  await page.goto("/contact");
+  await page.getByRole("button", { name: "送出示範訊息" }).click();
+  const status = page.getByRole("status");
+  await expect(status).toContainText("尚未送出");
+  await expect(status).toContainText("訊息內容需10至1500字");
+  await expect(status).toContainText("請勾選示範資料告知");
+  await expect(status).toBeInViewport();
+  await expect(status).toBeFocused();
+  expect(posted).toBe(false);
+});
+
+test("缺少randomUUID的瀏覽器仍能安全提交且回應明確", async ({ page }) => {
+  await page.addInitScript(() => Object.defineProperty(crypto, "randomUUID", { value: undefined, configurable: true }));
+  const data = input();
+  await page.goto("/contact");
+  await page.setExtraHTTPHeaders({ "x-forwarded-for": clientAddress(page.request) });
+  await page.getByLabel("示範姓名").fill(data.name);
+  await page.getByLabel("示範電子郵件").fill(data.email);
+  await page.getByLabel("主旨", { exact: true }).fill(data.subject);
+  await page.getByLabel("訊息內容").fill(data.message);
+  await page.getByRole("checkbox").check();
+  const submitted = page.waitForResponse((r) => r.url().endsWith("/api/contact") && r.request().method() === "POST");
+  await page.getByRole("button", { name: "送出示範訊息" }).click();
+  const response = await submitted;
+  expect(response.status()).toBe(201);
+  const { reference } = await response.json(); contacts.push(reference);
+  await expect(page.getByRole("status")).toContainText(reference);
+  await expect(page.getByRole("status")).toBeInViewport();
+});
+
 test("聯絡API防偽造、蜜罐、大小限制、同次重試去重與無公開查詢", async ({ request }) => {
   const data = input();
   const headers = { origin, "x-forwarded-for": clientAddress(request) };

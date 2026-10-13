@@ -131,3 +131,11 @@ Typecheck、ESLint、production build 通過。`PLAYWRIGHT_CHROMIUM_EXECUTABLE_P
 - VPS備份、第四個native migration與新版本重新部署未由agent執行，僅提供可操作步驟；不宣稱VPS已更新。SMTP與管理員初始化依使用者要求仍暫緩。
 
 本機加密backup成功，孤立restore演練通過，確認4 migrations與540個虛構測試帳號；此結果不代表VPS備份／restore已驗證。
+
+## 2026-10-13 聯絡提交回饋修正
+
+使用者回報VPS「點送出沒反應」。雲端外連test.cchm.tw遭egress proxy 403，未直接檢查VPS瀏覽器console，不能把程式發現當成使用者已確認的唯一原因。原表單的原生HTML validation會阻止onSubmit，因此未填欄位／未勾選時沒有自訂中文回饋；UUID產生亦原本在try之外，舊瀏覽器缺randomUUID會中斷。
+
+修正：noValidate改由現有Zod驗證，保留required/長度屬性；每種欄位錯誤有中文說明，status focus+scroll確保可見，前端未通過不發API；UUID在try中，缺randomUUID時以crypto.getRandomValues產生RFC4122 v4（不使用Math.random），安全亂數不可用時明確提示。
+
+Typecheck、Lint、build通過。聯絡桌面／手機套件實際14項全通過（14.4秒），包含新空白／未同意提示與focus/viewport、缺randomUUID仍成功儲存及既有提交、RBAC、限流、關閉開關案例。本次未重跑全套70項；上一版66項全套通過仍為上一版結果。沒有新migration，VPS需重新pull/build後驗證使用者情況。
