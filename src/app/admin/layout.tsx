@@ -55,6 +55,7 @@ export default async function Layout({
           {canAdmin(user.role, "audit") && (
             <Link href="/admin/audit">稽核紀錄</Link>
           )}
+          {canAdmin(user.role, "contacts") && <Link href="/admin/contacts">聯絡訊息</Link>}
           <Link href="/member">會員中心</Link>
         </nav>
         <div className="member-content">{children}</div>

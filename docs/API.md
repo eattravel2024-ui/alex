@@ -78,3 +78,13 @@
 最多1000筆，1001筆回413／EXPORT_TOO_LARGE，無截斷；查詢與 MEMBER_CSV_EXPORTED audit 在 RepeatableRead 交易內，失敗不留下成功紀錄。Audit 的 entityId 為操作者ID，不記搜尋詞或名單。UTF-8 BOM、CSV quoting、公式防護、attachment、no-store。包含帳號ID／姓名／信箱／驗證／角色／停用狀態／資格編號類別及啟用狀態／UTC起迄／示範性質，不含密碼、token、電話或備註。資格期限與帳號狀態分別呈現，不虛構正式資格有效性。
 
 下載使用普通 anchor，避免 Next 預抓；HEAD 回405，不觸發查詢與稽核。大量分批匯出、單獨匯出通知／操作原因及耐久不可竄改 audit 未實作。
+
+# 聯絡訊息 API
+
+POST /api/contact：匿名、本站Origin、開關啟用；strict JSON上限16KiB，submissionId UUID、name2–60、email≤254且@example.test、topic GENERAL/PARTNERSHIP/ACTIVITY/MEMBERSHIP、subject2–120、message10–1500、consent=true、website空字串。只回201 {reference}，不回姓名信箱內容。相同ID內容重試回相同reference、不另建訊息或history；ID內容不符409。每IP10／每信箱3次/10分鐘持久化限流，429；invalid400、異Origin403、超大413、關閉503。重試也計入限流。
+
+IP採x-forwarded-for最後一跳，必須由可信反向代理追加peer，網站容器只允許loopback對外映射；未取得有效IP共用unknown限流。多層代理/CDN需要重新確認trusted proxy設置，未宣稱完整抗bot/DoS。不存在公開GET／依ID查詢；不接受真實信箱、不寄送郵件。
+
+PATCH /api/admin/contacts/[id]：Staff/Admin/Super Admin，本站Origin、8KiB strict JSON：version正整數、status NEW/IN_PROGRESS/RESOLVED/SPAM、assignment KEEP/CLAIM/RELEASE、note2–1000。CLAIM只能接手無負責人或本人訊息；RELEASE不能釋出別人訊息，衝突409，版本過期409，缺目標404。KEEP允許有權限的工作人員協作更新狀態，不改負責人。成功寫ContactMessageChange與CONTACT_UPDATED audit，無匿名auditactor。未登入401、Editor/Member403。
+
+後台page每次query驗當前角色，搜尋限120字、每頁10筆、只顯示最近20筆歷程；notes僅工作人員可見，所有輸入作文字渲染。

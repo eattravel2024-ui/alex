@@ -90,7 +90,7 @@ test("活動月曆跨年、分類、詳情與未開放報名狀態", async ({ pa
     ),
   ).toBe(true);
 });
-test("關於協會與聯絡FAQ不虛構資料或接受提交", async ({ page }) => {
+test("關於協會與聯絡FAQ標示正式資料待確認與示範提交", async ({ page }) => {
   await page.goto("/about");
   await expect(
     page.getByRole("heading", { name: "理事長、理監事與顧問團隊" }),
@@ -106,7 +106,8 @@ test("關於協會與聯絡FAQ不虛構資料或接受提交", async ({ page }) 
     .click();
   await expect(page.locator("details").first()).toHaveAttribute("open", "");
   await expect(page.locator("details").first()).toContainText("不是。");
-  await expect(page.locator("form")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "送出示範訊息" })).toBeVisible();
+  await expect(page.getByText("僅供操作測試。", { exact: false })).toBeVisible();
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= window.innerWidth,

@@ -4,6 +4,7 @@ export type Capability =
   | "members"
   | "audit"
   | "content"
+  | "contacts"
   | "events"
   | "eventOperations";
 const grants: Record<Capability, readonly string[]> = {
@@ -12,6 +13,7 @@ const grants: Record<Capability, readonly string[]> = {
   members: ["SUPER_ADMIN", "ADMIN"],
   audit: ["SUPER_ADMIN"],
   content: ["SUPER_ADMIN", "ADMIN", "EDITOR"],
+  contacts: ["SUPER_ADMIN", "ADMIN", "STAFF"],
   events: ["SUPER_ADMIN", "ADMIN"],
   eventOperations: ["SUPER_ADMIN", "ADMIN", "STAFF"],
 };

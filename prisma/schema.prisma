@@ -49,6 +49,8 @@ model User {
   bookmarks ArticleBookmark[]
   auditLogs AuditLog[]
   history MembershipStatusHistory[]
+  assignedContacts ContactMessage[]
+  contactChanges ContactMessageChange[]
   @@index([createdAt])
 }
 model Session {
@@ -183,6 +185,46 @@ model AuditLog {
   entityId String
   createdAt DateTime @default(now()) @db.Timestamptz(3)
   @@index([actorId,createdAt])
+}
+
+enum ContactStatus {
+  NEW
+  IN_PROGRESS
+  RESOLVED
+  SPAM
+}
+model ContactMessage {
+  id String @id @db.Uuid
+  name String
+  email String
+  topic String
+  subject String
+  message String
+  consentVersion String
+  consentAt DateTime @default(now()) @db.Timestamptz(3)
+  status ContactStatus @default(NEW)
+  version Int @default(1)
+  isDemo Boolean @default(true)
+  assignedToId String? @db.Uuid
+  assignedTo User? @relation(fields:[assignedToId],references:[id],onDelete:SetNull)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  changes ContactMessageChange[]
+  @@index([status,createdAt])
+  @@index([assignedToId,status])
+}
+model ContactMessageChange {
+  id String @id @default(uuid()) @db.Uuid
+  contactId String @db.Uuid
+  contact ContactMessage @relation(fields:[contactId],references:[id],onDelete:Restrict)
+  actorId String? @db.Uuid
+  actor User? @relation(fields:[actorId],references:[id],onDelete:Restrict)
+  fromStatus ContactStatus?
+  toStatus ContactStatus
+  assignedToId String? @db.Uuid
+  note String
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  @@index([contactId,createdAt])
 }
 
 enum ArticleKind {

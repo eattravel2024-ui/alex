@@ -66,3 +66,9 @@ ArticleBookmark 保存不可變的文章 slug，service 驗證目前文章可見
 EventRegistration eventId+userId unique、queueOrder BIGSERIAL unique、eventId+status+queueOrder／userId+createdAt索引；checkedInAt／checkedInById 同時空或同時非空。報名對 user/event Restrict，報到人 user Restrict；Change 保存每次狀態、原因、操作者与时间，不刪除歷史。沒有保存付款、保健資料或 Session token。
 
 第三個 migration 第一次因 Pg adapter 的簡易分號拆分誤讀 SQL 註解而失敗。已確認本次新建的三表全部0 rows，僅移除這三張空表及其新 enum，使用官方 engine.markMigrationRolledBack 標記失败，保留失敗紀錄；修正註解後正式apply及重跑成功。既有會員／文章資料、migration checksums與業務約束未重置。對此 adapter 的 migration SQL 註解不可使用分號，複雜函式／字串需正式 native tooling；未宣稱完全 SQL parser。
+
+## 聯絡示範資料
+
+第四個 migration phase4_contacts 增加 ContactMessage／ContactMessageChange，共20模型。訊息ID由客户端一次提交UUID提供，重試在 advisory transaction lock 下核對完全相同的正規化內容，避免重複資料；不公開訊息查詢。ContactMessage保存同意版本／時間與version；CHECK要求version>0、isDemo=true、信箱以@example.test結尾。狀態NEW/IN_PROGRESS/RESOLVED/SPAM，status+createdAt與assignedToId+status索引。
+
+assignedTo User FK刪除SET NULL；Change contact/actor FK Restrict。歷程的assignedToId是當次快照，沒有現存User FK，用於保留原指派識別碼。更新contact row lock，版本檢查後同交易保存訊息／Change／AuditLog，內部note不放入公開回應與AuditLog。沒有正式保留政策、自動刪除或hard-delete端點。示範seed不建立聯絡訊息。

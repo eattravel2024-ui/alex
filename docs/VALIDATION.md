@@ -121,3 +121,13 @@ Typecheck、ESLint、production build 通過。`PLAYWRIGHT_CHROMIUM_EXECUTABLE_P
 這是受影響的後台套件驗證，未在本次重跑其他文章／活動／前台／單元套件，不將過往全套結果算成本次全套通過。沒有新migration。會員中心僅修正文案與既有活動紀錄連結。
 
 使用者提供的VPS紀錄確認標準Prisma三個migration成功、Docker multi-stage build後web/db healthy、HTTPS200／HTTP301、Certbot renewal dry-run及deploy hook成功；agent沒有直接登入VPS，也尚未驗證本次新版本的VPS更新。
+
+## 2026-10-13 聯絡訊息增量
+
+- 新增migration SQL經檢閱，沒有drop/重置既有表；本機migration套用1筆成功，官方JS client產生成功。db:verify:cms在新的隨機空DB驗證4 migrations、既有9文章/3活動、無預設使用者、11 business CHECK與partial unique、seed不覆寫CMS修改，重跑0 pending，僅刪除自己的驗證DB。
+- 16 unit tests全部通過；typecheck、ESLint、production build通過。
+- 完整Playwright runner實際執行66項（2.3分鐘），桌面／手機與依賴文章／活動專案全部通過，無skip。新增10項覆蓋聯絡表單成功與錯誤、Origin/蜜罐/strict/真實信箱拒絕/16KiB、防同次併發重複、公開GET拒絕、IP與信箱限流、5角色隔離、XSS文字渲染、接手／釋出／版本衝突、history/audit原子性、開關關閉的獨立服務page/API一致。既有會員／CSV／文章／活動流程也重跑通過。
+- 接手測試與歷程僅使用虛構資料，afterEach清除其自建訊息／歷程並還原暫時管理角色；沒有對外寄信。測試用關閉開關的獨立server在finally停止，不暴露localhost預覽。手機表單無水平overflow。
+- VPS備份、第四個native migration與新版本重新部署未由agent執行，僅提供可操作步驟；不宣稱VPS已更新。SMTP與管理員初始化依使用者要求仍暫緩。
+
+本機加密backup成功，孤立restore演練通過，確認4 migrations與540個虛構測試帳號；此結果不代表VPS備份／restore已驗證。

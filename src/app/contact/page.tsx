@@ -1,9 +1,11 @@
-import Link from "next/link";
+import { ContactForm } from "@/components/content/contact-form";
+import { contactEnabled } from "@/lib/server/contact-settings";
+export const dynamic = "force-dynamic";
 import { PageHeading } from "@/components/content/page-heading";
 import { pageMetadata } from "@/lib/seo";
 export const metadata = pageMetadata(
   "聯絡我們",
-  "協會聯絡資訊及常見問題。正式聯絡資料與提交服務待建置。",
+  "協會聯絡資訊、示範聯絡表單與常見問題。",
   "/contact",
 );
 const faqs = [
@@ -21,11 +23,11 @@ const faqs = [
   },
   {
     q: "如何聯絡或提出合作需求？",
-    a: "協會地址、電話、電子郵件與社群連結尚未提供。取得確認資料後會在本頁公布。聯絡表單將在資料庫及垃圾訊息防護完成後開放。",
+    a: "協會地址、電話、電子郵件與社群連結尚未提供。取得確認資料後會在本頁公布。啟用示範表單後，可使用 @example.test 虛構信箱測試提交；訊息保存在資料庫，不寄送郵件，也不是正式聯絡管道。",
   },
   {
     q: "網站會收集我的資料嗎？",
-    a: "目前提供本機測試帳號與申請資料儲存，沒有開放聯絡提交、電子報訂閱或網站追蹤。未來服務啟用前會更新隱私權政策，說明蒐集目的、保留期限與權利行使方式。",
+    a: "目前提供本機測試帳號與申請資料儲存，啟用示範聯絡提交時會保存虛構姓名、信箱、詢問內容與同意時間，供工作人員測試。電子報訂閱與網站追蹤未開放。未來服務啟用前會更新隱私權政策，說明蒐集目的、保留期限與權利行使方式。",
   },
 ];
 export default function Page() {
@@ -52,18 +54,7 @@ export default function Page() {
               </dl>
             </div>
           </div>
-          <div className="contact-card">
-            <h2>聯絡表單建置中</h2>
-            <p>
-              目前不接受資料提交，避免在資料庫與安全處理尚未完成時蒐集個資。
-            </p>
-            <p>
-              表單開放後將支援必要欄位驗證、垃圾訊息防護與後台處理，並於送出前提供隱私告知。
-            </p>
-            <Link className="text-link" href="/privacy">
-              閱讀隱私權政策草案 ↗
-            </Link>
-          </div>
+          <ContactForm enabled={contactEnabled()} />
         </div>
       </section>
       <section className="section faq-section">

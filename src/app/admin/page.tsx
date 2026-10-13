@@ -8,8 +8,9 @@ export default async function Page() {
   if (!user || !canAdmin(user.role, "dashboard")) return <AccessDenied />;
   const canReview = canAdmin(user.role, "review"),
     canMembers = canAdmin(user.role, "members"),
-    canContent = canAdmin(user.role, "content");
-  const [pending, returned, accounts, disabled, drafts] = await Promise.all([
+    canContent = canAdmin(user.role, "content"),
+    canContacts = canAdmin(user.role, "contacts");
+  const [pending, returned, accounts, disabled, drafts, contacts] = await Promise.all([
     canReview
       ? db.membershipApplication.count({ where: { status: "PENDING" } })
       : null,
@@ -21,6 +22,7 @@ export default async function Page() {
       ? db.user.count({ where: { role: "MEMBER", disabled: true } })
       : null,
     canContent ? db.articleRecord.count({ where: { status: "DRAFT" } }) : null,
+    canContacts ? db.contactMessage.count({ where: { status: "NEW" } }) : null,
   ]);
   return (
     <>
@@ -29,6 +31,7 @@ export default async function Page() {
         統計直接讀取目前資料庫。開發測試資料不代表協會正式營運數據。
       </p>
       <div className="member-summary-grid admin-metrics">
+        {contacts !== null && <Link href="/admin/contacts"><span>新聯絡訊息</span><strong>{contacts}</strong></Link>}
         {pending !== null && (
           <Link href="/admin/applications?status=PENDING">
             <span>待審核申請</span>
@@ -82,7 +85,7 @@ export default async function Page() {
         <p>
           文章 CMS
           已提供編輯、預覽、發布、排程與版本還原。活動管理已支援名額、候補、取消、報到與
-          CSV。媒體與系統設定尚待實作；編輯角色沒有會員資料權限。
+          CSV。聯絡訊息已提供接手與處理歷程，不寄送郵件。媒體與系統設定尚待實作；編輯角色沒有會員或聯絡訊息資料權限。
         </p>
       </div>
     </>

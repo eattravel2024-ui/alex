@@ -56,3 +56,9 @@ Editor/Admin/Super Admin 的內容權限於每次讀／寫重新驗證；Staff/M
 活動內容修改限Admin/Super Admin，Staff只可名單／CSV／報到；Editor/Member無報名個資資料權限。會員報名與歷程只以session userId查詢。最新資格在報名／遞補／報到時驗證，role=MEMBER不等於Membership；示範資格與示範活動仅限development報名。
 
 活動row lock防超額、event+user unique防重複、sequence防候補重報插隊；所有報名狀態／通知／history／audit一個交易。未提供付款或真實健康資訊收集。CSV不預抓、no-store、防公式注入、明示2000筆上限且有audit，不把user-controlled filename送到header。QR身分查驗、MFA、正式規則、可靠email、大量併發／超時與營運容量尚未驗收。
+
+## 聯絡示範
+
+公開提交有獨立預設false開關、固定@example.test信箱限制與DB demo CHECK，不使用 SMTP。蜜罐／same-origin／strict輸入／大小限制、持久化IP與email限流；IP依目前VPS單層Nginx追加的最後peer，不能直接公開容器或未審查改成多層代理。資料庫操作無原始IP保存，RateLimit key保留SHA256而非明文信箱/IP；不將它稱為不可逆匿名化。
+
+Staff/Admin/Super Admin才能讀聯絡個資與note，Editor/Member不可讀，更新記history/audit。匿名收件reference只作收件識別，不提供公開讀取。反垃圾機制不是完整CAPTCHA/DoS解決方案；資料刪除／保留期限與正式聯絡隱私政策尚未完成。

@@ -95,3 +95,7 @@ E2E 的 CMS projects 在既有前台／會員 projects 通過後執行，避免�
 所有變更使用活動 row lock，名額、報名、通知、狀態歷程與 audit 同一交易，不能超額或重複報名。已報名時時間／資格固定，名額不能低於已確認人數；草稿／下架前須先取消全部報名。會員取消限活動開始前且未報到；截止後取消不再遞補。報到只限開始前兩小時至結束，拒絕候補、重複報到、跨活動紀錄與失效資格。
 
 此為測試報名，沒有實際活動、收費／退款、附件上傳、QR 身分驗證或可靠寄信 outbox。名額與候補各限1000，CSV最多2000筆歷史紀錄（超過會明確回413，不偷偷截斷）；大量營運量、正式規則與部署仍需後續驗證。`db:verify:cms` 現在從空 DB 驗證三個 migrations、9篇文章與3個活動，以及 seed 保留修改與會員約束。
+
+## 聯絡示範
+
+`/contact` 在 CONTACT_SUBMISSIONS_ENABLED=true 時接受虛構姓名與 @example.test 信箱；匿名詢問寫入 PostgreSQL，不寄送任何郵件。`/admin/contacts` 僅 Staff/Admin/Super Admin 可讀取與處理。需要第四個 migration；新開發設定會啟用，既有 .env.local 若缺少此旗標，僅追加 CONTACT_SUBMISSIONS_ENABLED=true，保留所有密鑰。公開 VPS 預設關閉，按 DEPLOYMENT.md 的聯絡版本更新流程啟用；不是正式聯絡服務。

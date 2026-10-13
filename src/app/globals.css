@@ -1888,3 +1888,7 @@ dd {
 .cms-page-title { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
 .admin-area .article-detail { width: 100%; max-width: 100%; padding-top: 25px; }
 @media(max-width:600px) { .cms-two-columns { grid-template-columns: 1fr; } .cms-editor fieldset { padding: 16px; } .cms-page-title { flex-wrap: wrap; } }
+
+.contact-fieldset { border: 0; padding: 0; margin: 0; min-width: 0; display: grid; gap: 16px; }
+.contact-fieldset > .button { justify-self: start; }
+.contact-message-text { white-space: pre-wrap; overflow-wrap: anywhere; }

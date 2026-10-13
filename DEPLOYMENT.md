@@ -87,3 +87,47 @@ Build 失敗時不要執行 up；舊容器會繼續服務。更新會短暫重�
 目前註冊／入會／報名 flags=false；沒有預設管理員。dev:admin 只適用本機開發，不能直接當作 VPS 管理員建立程序。正式 SMTP／經核准政策與安全管理員初始化待完成。
 
 VPS 已用標準 Prisma CLI 成功套用三個 migrations；雲端環境曾有 native engine 網路限制，兩者的驗證範圍不同。示範 seed 在一次性工具容器共享獨立 DB 網路命名空間，僅對自己的 cchm_demo 使用 loopback 開發匯入；網站 runtime 始終 DEVELOPMENT_MODE=false。不對既有正式資料庫使用此流程，也不匯入開發帳號與 Session。
+
+## 聯絡功能版本更新（需要第四個 migration）
+
+本節取代前一節「CSV版本不需要migration」的更新判斷。保留既有.env.production、compose.vps.yaml、資料庫volume與Nginx憑證，先pull與build，再備份、migration、設定開關、切換web。下列是供使用者在VPS執行的程序；agent未在VPS執行。
+
+```sh
+cd /opt/health-association/app
+git status --short
+docker image tag cchm-demo-web cchm-demo-web:previous
+git pull --ff-only origin main
+docker compose -p cchm-demo --env-file .env.production -f compose.yaml -f compose.vps.yaml build web
+```
+
+任一步失敗就停下，舊web仍在服務。接著用age建立加密備份；依提示設定並安全保存備份密碼，不貼聊天、不寫進Git。此為建立備份的指令，不代表已完成VPS還原演練。
+
+```sh
+apt-get install -y age
+set -o pipefail
+umask 077
+mkdir -p /opt/health-association/backups
+docker compose -p cchm-demo --env-file .env.production -f compose.yaml -f compose.vps.yaml exec -T db pg_dump -U cchm -d cchm_demo -Fc | age -p -o "/opt/health-association/backups/before-contacts-$(date +%Y%m%d-%H%M%S).dump.age"
+```
+
+確認備份指令成功後，套用migration。工具容器安裝OpenSSL以避免先前native Prisma環境偵測警告；不關閉TLS或checksum驗證。
+
+```sh
+docker run --rm --network cchm-demo_default --env-file .env.production -v "$PWD:/app" -w /app node:24-bookworm-slim sh -c 'apt-get update && apt-get install -y --no-install-recommends openssl ca-certificates && npm ci && npm run db:migrate'
+```
+
+應成功套用phase4_contacts（已套用時0 pending）；不需重新seed、不reset資料庫。CONTACT_SUBMISSIONS_ENABLED預設false；若要公開展示提交測試，在VPS.env.production加入或修改以下非機密旗標，其餘設定保留：
+
+```dotenv
+CONTACT_SUBMISSIONS_ENABLED=true
+```
+
+這仍只接受@example.test，不能作為正式個資聯絡服務。不開啟POLICIES_APPROVED／會員報名旗標，不設定SMTP。
+
+```sh
+docker compose -p cchm-demo --env-file .env.production -f compose.yaml -f compose.vps.yaml up -d --no-build web
+docker compose -p cchm-demo --env-file .env.production -f compose.yaml -f compose.vps.yaml ps
+curl --fail --head https://test.cchm.tw/contact
+```
+
+瀏覽/contact確認示範告知與表單，使用虛構內容取得收件編號。管理員初始化尚未完成，VPS後台不會因這次更新自動可登入。獨立示範站也需要後續監控與保留期限／備份還原演練；不要刪除volume來處理升級錯誤。

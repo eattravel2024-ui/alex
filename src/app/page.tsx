@@ -264,16 +264,17 @@ export default async function Home() {
           <SectionHeading
             eyebrow="STAY CONNECTED"
             title="期待，與你連結。"
-            text="關於協會、合作或活動的詢問，未來可透過聯絡表單與我們交流。"
+            text="關於協會、合作或活動的詢問，可至聯絡頁查看示範表單與服務狀態。"
           />
           <div className="contact-card">
             <h3>正式聯絡資訊待提供</h3>
             <p>地址、電話、電子郵件及社群連結將以協會確認資料為準。</p>
             <div className="contact-divider" />
+            <Link className="text-link" href="/contact">前往聯絡頁 ↗</Link>
             <p>
-              <strong>聯絡表單與電子報訂閱尚未開放</strong>
+              <strong>聯絡表單示範已建置，電子報訂閱尚未開放</strong>
               <br />
-              資料儲存與寄送功能將於後續階段完成。
+              聯絡訊息可依網站設定儲存，不寄送郵件；正式聯絡窗口仍待確認。
             </p>
           </div>
         </div>
