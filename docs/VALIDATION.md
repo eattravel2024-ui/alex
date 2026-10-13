@@ -67,3 +67,17 @@ PostgreSQL 17 + Mailpit 在本機 loopback，使用隨機生成、忽略且權�
 會員中心已登入的 desktop/mobile 截圖與 390px body overflow 檢查通過。最後加密備份實際還原 1 completed migration、48 個虛構測試帳號；保留原開發 DB。來源檔與 browser assets 未包含隨機生成的 signing secret／DB password／backup key，.env.local 與加密備份均為 0600。
 
 雲端 install_script/start_skill 已更新草稿，加入必要的本機服務啟動、只對空 schema 還原、migration/seed、測試與 encrypted snapshot 說明。未發布，未在新 cloud task 驗證；本地 Git 提交未推送。
+
+# Phase 4 管理核心驗證（2026-10-13，Asia/Taipei）
+
+- TypeScript、ESLint、production build 通過；`/admin` 與各後台頁皆 dynamic，統計與列表直接讀取 PostgreSQL。
+- 10 unit + 36 desktop/mobile E2E/API 全數通過；新增 8 個管理整合檢查，既有 28 個前台與會員檢查保留。
+- 五種角色：MEMBER 无後台；EDITOR 無會員個資；STAFF 可審核但不可帳號管理／稽核；ADMIN 可帳號管理但不可稽核；SUPER_ADMIN 可查稽核。直接請求資料頁與 mutation API 都檢查權限，角色變更立即生效。
+- 真實 UI 核准申請，驗證 PostgreSQL membership/demo flag/history，`2099-12-31` 有效期保存為台灣當日 23:59:59（UTC 15:59:59），示範資料無正式效力。
+- 帳號停用／恢復 UI、確認勾選、操作原因、Session 全撤銷、未登入401、重複狀態409、跨 Origin403、管理角色保護403；通知和 audit 寫入驗證；手機畫面無 body 橫向 overflow。
+- 本機 `dev:admin` 真實提升專用 verified fixture，重跑不新增 audit，DEVELOPMENT_MODE=false 明確拒絕；測試 afterEach 在失敗時也恢復專用 fixture 角色，無固定管理員帳號／密码。
+- 初次測試暴露 details 收合的測試操作問題；修正為只在收合時展開。CLI audit insert 曾因 UUID/text 共用 SQL parameter 失敗，交易完整回滾；分開參數後重跑成功。最終完整 36 tests 零失敗、零跳過。
+- 加密 backup 在独立 DB 還原驗證：1 個 completed migration、121 個虛構測試帳號；原始資料庫未覆寫。來源與 browser assets 無產生的 signing secret／DB password／backup key，`.env.local` 0600。
+- `start_skill` 更新並已確認草稿儲存；install_script 保留原已驗證流程。草稿未發布，新任務還原未驗證；Git 僅本機提交，未推送、未執行正式部署。
+
+此交付為 Phase 4 的會員管理核心。文章／頁面 CMS、媒體上傳、活動管理、聯絡追蹤、系統設定、角色指派、營運趨勢與 CSV 尚未完成，不宣稱整個 Phase 4 已完成。

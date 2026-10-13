@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { canAdmin } from "@/lib/admin-permissions";
 import { redirect } from "next/navigation";
 import { currentUser } from "@/lib/server/access";
 import { LogoutButton } from "@/components/member/member-actions";
@@ -26,6 +27,9 @@ export default async function Layout({
       </div>
       <div className="member-layout">
         <nav className="member-nav" aria-label="會員服務導覽">
+          {canAdmin(user.role, "dashboard") && (
+            <Link href="/admin">管理後台</Link>
+          )}
           {[
             ["/member", "會員總覽"],
             ["/member/profile", "個人資料"],

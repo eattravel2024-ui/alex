@@ -18,7 +18,8 @@
     "db:seed": "node scripts/seed.mjs",
     "db:backup": "node scripts/db-backup.mjs backup",
     "db:restore:local": "node scripts/db-backup.mjs restore-if-empty",
-    "db:backup:verify": "node scripts/db-backup.mjs verify"
+    "db:backup:verify": "node scripts/db-backup.mjs verify",
+    "dev:admin": "node scripts/dev-admin.mjs"
   },
   "dependencies": {
     "@prisma/adapter-pg": "7.10.0",

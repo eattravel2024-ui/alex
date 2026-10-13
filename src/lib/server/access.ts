@@ -102,3 +102,14 @@ export function handleError(error: unknown) {
     500,
   );
 }
+
+export async function requireAdmin(
+  capability: import("@/lib/admin-permissions").Capability,
+  requestHeaders?: Headers,
+) {
+  const user = await requireUser(requestHeaders);
+  const { canAdmin } = await import("@/lib/admin-permissions");
+  if (!canAdmin(user.role, capability))
+    throw new ServiceError(403, "FORBIDDEN", "沒有此後台功能的權限。");
+  return user;
+}

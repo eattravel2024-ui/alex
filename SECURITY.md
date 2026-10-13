@@ -38,3 +38,9 @@ Phase 3 發現 mysql2 與 deepmerge-ts advisories；以 overrides 固定 mysql2 
 開發 ESLint 相依鏈的 braces GHSA-vfj7-8cjw-p6xm 尚無相容修補，避免將不可信 glob 輸入傳給 lint；不採用與 Next 16 不相容的套件降級。正式發布前需重新完整 audit。
 
 PostgreSQL 開發容器使用開發管理角色以支援 migration/test，正式環境必須分離 migration owner 與最小權限 application role，不可沿用開發 superuser。
+
+## Phase 4 管理核心
+
+伺服器每次查詢／mutation 檢查最新 role、emailVerified 與 disabled；每頁明確投影需要的欄位，沒有 password／token query。Admin/Super Admin 僅能切換其他 MEMBER 的帳號狀態，保護管理角色及自己；角色指派未提供 Web API。停用／恢復在 row-lock 交易中寫入通知、稽核並刪除 Session；member 資格不改動。最高管理員稽核唯讀介面不呈現原因、IP、信箱或秘密。尚未提供不可竄改 audit storage、MFA 與正式 privilege bootstrap。
+
+本機 `dev:admin` 必須明確提供既有已驗證帳號，拒絕 production／非 loopback DB；不在 seed/setup 自動執行，不建立帳號／密码。此為開發工具，不可用於正式角色初始化。
