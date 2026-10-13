@@ -64,8 +64,11 @@ export default async function Page() {
       )}
       <h2 className="subsection-title">活動與課程紀錄</h2>
       <p className="section-description">
-        報名與修課尚未開放，沒有任何已報名或完成的紀錄。
+        可查看自己的活動報名、候補與取消紀錄。是否開放報名依網站與各活動設定為準；修課與完課紀錄尚未開放。
       </p>
+      <Link className="text-link" href="/member/events">
+        查看我的活動紀錄 ↗
+      </Link>
     </>
   );
 }

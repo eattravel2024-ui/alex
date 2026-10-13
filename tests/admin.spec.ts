@@ -31,6 +31,12 @@ test("後台各角色的頁面與 API 權限、個資隔離", async ({ page, req
       },
     );
     expect(result.status()).toBe(allowed ? 404 : 403);
+    const csv = await page.request.get("/api/admin/members/export?q=" + encodeURIComponent(target.address));
+    expect(csv.status()).toBe(allowed ? 200 : 403);
+    if (allowed) {
+      expect(await csv.text()).toContain(target.address);
+      expect(csv.headers()["cache-control"]).toBe("no-store");
+    }
     await page.goto("/admin/audit");
     if (role === "SUPER_ADMIN")
       await expect(
@@ -48,6 +54,69 @@ test("後台各角色的頁面與 API 權限、個資隔離", async ({ page, req
       );
   }
   await sql("UPDATE \"User\" SET role='MEMBER' WHERE id=$1", [actor.id]);
+});
+
+test("帳號CSV篩選、資格、公式防護、下載與稽核，不洩漏私人欄位", async ({ page, request }) => {
+  expect((await request.get("/api/admin/members/export")).status()).toBe(401);
+  const admin = await createVerified(page.request);
+  const member = await createVerified(request);
+  elevatedActors.push(admin.id);
+  await sql("UPDATE \"User\" SET role='ADMIN' WHERE id=$1", [admin.id]);
+  await sql('UPDATE "User" SET name=$1 WHERE id=$2', [' =HYPERLINK("https://invalid.example")\n測試', member.id]);
+  const type = (await sql("SELECT id FROM \"MembershipType\" WHERE code='DEMO_PERSONAL'"))[0];
+  const memberNumber = "CSV-" + randomUUID();
+  await sql('INSERT INTO "Membership" (id,"userId","typeId","memberNumber","validFrom","validUntil","isDemo") VALUES ($1,$2,$3,$4,now(),$5,true)', [randomUUID(), member.id, type.id, memberNumber, "2099-12-31T00:00:00Z"]);
+  const path = "/api/admin/members/export?q=" + encodeURIComponent(member.address);
+  const result = await page.request.get(path + "&state=enabled");
+  expect(result.status()).toBe(200);
+  expect(result.headers()["content-type"]).toContain("text/csv");
+  expect(result.headers()["content-disposition"]).toContain("attachment");
+  const text = await result.text();
+  expect(text).toContain(member.address);
+  expect(text).not.toContain(admin.address);
+  expect(text).toContain('"\' =HYPERLINK(""https://invalid.example"")\n測試"');
+  expect(text).toContain(memberNumber);
+  expect(text).toContain("示範資格（無正式效力）");
+  expect(text).not.toContain(member.secret);
+  expect(text).not.toContain("password");
+  expect(await (await page.request.get(path + "&state=disabled")).text()).not.toContain(member.address);
+  await page.goto("/admin/members?q=" + encodeURIComponent(member.address) + "&state=enabled");
+  const before = (await sql('SELECT id FROM "AuditLog" WHERE "actorId"=$1 AND action=\'MEMBER_CSV_EXPORTED\'', [admin.id])).length;
+  expect((await page.request.head(path)).status()).toBe(405);
+  const link = page.getByRole("link", { name: "匯出目前查詢 CSV" });
+  await expect(link).toHaveAttribute("href", path + "&state=enabled");
+  const download = page.waitForEvent("download");
+  await link.click();
+  expect((await download).suggestedFilename()).toBe("member-accounts.csv");
+  expect((await sql('SELECT id FROM "AuditLog" WHERE "actorId"=$1 AND action=\'MEMBER_CSV_EXPORTED\'', [admin.id])).length).toBe(before + 1);
+  await sql('UPDATE "User" SET disabled=true WHERE id=$1', [admin.id]);
+  try {
+    expect((await page.request.get(path)).status()).toBe(401);
+  } finally {
+    await sql('UPDATE "User" SET disabled=false WHERE id=$1', [admin.id]);
+  }
+});
+
+test("帳號CSV超限明確拒絕、不截斷且失敗不寫匯出稽核", async ({ page }) => {
+  const admin = await createVerified(page.request);
+  elevatedActors.push(admin.id);
+  await sql("UPDATE \"User\" SET role='ADMIN' WHERE id=$1", [admin.id]);
+  const prefix = "csv-limit-" + randomUUID();
+  const path = "/api/admin/members/export?q=" + prefix;
+  const ids = await sql('INSERT INTO "User" (id,name,email,"updatedAt") SELECT gen_random_uuid(),$1,$1 || n::text || \'@example.test\',now() FROM generate_series(1,1001) n RETURNING id', [prefix]);
+  try {
+    const large = await page.request.get(path);
+    expect(large.status()).toBe(413);
+    expect((await large.json()).error.code).toBe("EXPORT_TOO_LARGE");
+    expect((await sql('SELECT id FROM "AuditLog" WHERE "actorId"=$1 AND action=\'MEMBER_CSV_EXPORTED\'', [admin.id])).length).toBe(0);
+    await sql('DELETE FROM "User" WHERE id=$1', [ids[0].id]);
+    const bounded = await page.request.get(path);
+    expect(bounded.status()).toBe(200);
+    expect((await bounded.text()).trim().split("\r\n")).toHaveLength(1001);
+    expect((await sql('SELECT id FROM "AuditLog" WHERE "actorId"=$1 AND action=\'MEMBER_CSV_EXPORTED\'', [admin.id])).length).toBe(1);
+  } finally {
+    await sql('DELETE FROM "User" WHERE id=ANY($1::uuid[])', [ids.map((r) => r.id)]);
+  }
 });
 
 test("帳號停權 UI、撤銷登入、版本衝突、恢復與稽核交易", async ({

@@ -8,7 +8,7 @@ import {
   adminPageSize,
   pageNumber,
 } from "@/components/admin/pagination";
-import type { Prisma } from "@/generated/prisma/client";
+import { memberFilters } from "@/lib/member-filters";
 export default async function Page({
   searchParams,
 }: {
@@ -16,25 +16,8 @@ export default async function Page({
 }) {
   const actor = await currentUser();
   if (!actor || !canAdmin(actor.role, "members")) return <AccessDenied />;
-  const params = await searchParams,
-    q = typeof params.q === "string" ? params.q.trim().slice(0, 120) : "";
-  const state =
-    params.state === "disabled"
-      ? "disabled"
-      : params.state === "enabled"
-        ? "enabled"
-        : "all";
-  const where: Prisma.UserWhereInput = {
-    ...(state !== "all" ? { disabled: state === "disabled" } : {}),
-    ...(q
-      ? {
-          OR: [
-            { name: { contains: q, mode: "insensitive" } },
-            { email: { contains: q, mode: "insensitive" } },
-          ],
-        }
-      : {}),
-  };
+  const params = await searchParams;
+  const { q, state, where } = memberFilters(params);
   const total = await db.user.count({ where });
   const page = Math.min(
     pageNumber(params.page),
@@ -84,6 +67,15 @@ export default async function Page({
         </div>
         <button className="button button-primary">查詢帳號</button>
       </form>
+      <p className="section-description">
+        匯出目前查詢的全部帳號與會員資格，上限1000筆；包含姓名與信箱，請妥善保管下載檔案。
+      </p>
+      <a
+        className="button button-secondary"
+        href={`/api/admin/members/export?${new URLSearchParams({ q, state })}`}
+      >
+        匯出目前查詢 CSV
+      </a>
       {users.map((user) => (
         <article key={user.id} className="application-record admin-record">
           <h3>
@@ -118,7 +110,7 @@ export default async function Page({
           )}
         </article>
       ))}
-      {!users.length && <p className="demo-warning">没有符合條件的帳號。</p>}
+      {!users.length && <p className="demo-warning">沒有符合條件的帳號。</p>}
       <Pagination
         path="/admin/members"
         page={page}

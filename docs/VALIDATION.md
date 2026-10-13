@@ -113,3 +113,11 @@ PostgreSQL 17 + Mailpit 在本機 loopback，使用隨機生成、忽略且權�
 - start_skill更新草稿已確認保存，加入活動角色、global flag、示範guard、三個migration與測試／seed保護；install_script保留已驗證通用流程。未發布、未驗證新任務restore；程式只做本機commit，未推送或正式部署。
 
 未完成：附件／媒體安全上傳、QR身分查驗、正式活動規則／收費退款、可靠email outbox、大量營運容量／效能／MFA／完整privacy operations；聯絡追蹤與系統設定亦未完成。全部報名仍為開發示範，不宣稱完整Phase 4或正式營運驗收。
+
+## 2026-10-13 帳號 CSV 與 VPS 文件更新
+
+Typecheck、ESLint、production build 通過。`PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium npm run test:e2e -- tests/admin.spec.ts --project=desktop --project=mobile` 實際執行12項、全部通過（35.8秒），含五種角色頁面/API隔離、未登入與停用拒絕、CSV查詢與state一致、资格資料、quote／換行／公式防護、不含密碼、下載檔名與no-store、HEAD不觸發稽核、成功下載只新增一次audit、1001筆413不截斷且無成功audit、1000筆完整匯出。大量測試僅建立隨機識別碼的虛構帳號，finally刪除其自身新增資料；暫時角色還原。既有停權／核准／本機bootstrap測試也通過。
+
+這是受影響的後台套件驗證，未在本次重跑其他文章／活動／前台／單元套件，不將過往全套結果算成本次全套通過。沒有新migration。會員中心僅修正文案與既有活動紀錄連結。
+
+使用者提供的VPS紀錄確認標準Prisma三個migration成功、Docker multi-stage build後web/db healthy、HTTPS200／HTTP301、Certbot renewal dry-run及deploy hook成功；agent沒有直接登入VPS，也尚未驗證本次新版本的VPS更新。

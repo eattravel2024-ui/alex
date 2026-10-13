@@ -70,3 +70,11 @@
 報到窗口為開始前2小時至结束，僅CONFIRMED、未報到、當下帳號與會員資格仍有效；其他活动的registration404／重複409，CSV最高2000筆（413明示超限）。CSV以UTF-8 BOM+quote生成，公式開頭以apostrophe保護，含換行／引號也正確處理；只包含姓名／信箱／status／checkedIn，不含其他會員欄位。成功匯出留下EVENT_CSV_EXPORTED。
 
 通知為站內，活動與資格均保留demo聲明；未提供正式費用／退款、QR、附件上傳、可靠email outbox，正式booking flag預設false。
+
+# 帳號與會員資格 CSV
+
+`GET /api/admin/members/export?q=<姓名或信箱>&state=all|enabled|disabled`，僅 Admin/Super Admin。未登入／停用／未驗證401，角色不足403。搜尋與後台列表共用正規化（trim、120字）；匯出全部符合條件的帳號，不受分頁影響。
+
+最多1000筆，1001筆回413／EXPORT_TOO_LARGE，無截斷；查詢與 MEMBER_CSV_EXPORTED audit 在 RepeatableRead 交易內，失敗不留下成功紀錄。Audit 的 entityId 為操作者ID，不記搜尋詞或名單。UTF-8 BOM、CSV quoting、公式防護、attachment、no-store。包含帳號ID／姓名／信箱／驗證／角色／停用狀態／資格編號類別及啟用狀態／UTC起迄／示範性質，不含密碼、token、電話或備註。資格期限與帳號狀態分別呈現，不虛構正式資格有效性。
+
+下載使用普通 anchor，避免 Next 預抓；HEAD 回405，不觸發查詢與稽核。大量分批匯出、單獨匯出通知／操作原因及耐久不可竄改 audit 未實作。

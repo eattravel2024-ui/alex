@@ -1,6 +1,6 @@
 # 部署準備
 
-目前提供 Phase 3 本機會員核心，正式 runtime 需要外部 PostgreSQL／auth／SMTP 安全設定。不得將文件視為已正式部署。主機、Domain、HTTPS、Database、SMTP、備份與法律內容須確認，並取得使用者明確部署授權。不得自行 SSH 或修改正式資料。
+目前提供前台、會員核心與部分後台。使用者已自行部署 VPS 示範站 https://test.cchm.tw，並提供 HTTPS 200／HTTP 301、Web／PostgreSQL healthy、Certbot dry-run 成功證據。這些是使用者回報，並非雲端 agent 直接登入 VPS 驗證。正式 SMTP、政策、會員規則、備份與正式營運驗收仍未完成。不得自行取得未提供的 SSH 憑證或修改其他網站。
 
 ## 本機 Docker
 
@@ -20,7 +20,7 @@ YOUR_CONFIRMED_DOMAIN {
 }
 ```
 
-這不是可直接用於正式服務的 Domain。DNS、憑證取得與自動更新、proxy headers、HTTPS cookies 及 HSTS 待驗證。Phase 3 再加入 PostgreSQL service／外部 DB、Prisma migrations、secrets 注入與 SMTP；不得使用範例帳密。
+這不是可直接用於正式服務的 Domain。DNS、憑證取得與自動更新、proxy headers、HTTPS cookies 及 HSTS 待驗證。PostgreSQL／Prisma migration 已實作；compose.yaml 僅含 web，資料庫須另設。VPS 使用本機 compose.vps.yaml 提供獨立 PostgreSQL，不發布資料庫埠。SMTP 尚需實際設定，不得使用範例帳密。
 
 ## 後續正式發布流程
 
@@ -64,3 +64,26 @@ runtime image 不包含 .env.local，必須由安全的 runtime env 注入 DATAB
 Native production migration（只在獲明確授權後）：使用 lockfile 安裝，執行 `npm run db:migrate`，僅部署已審核 migration，之前先備份／staging 驗證。標準 CLI 不支援時不得以未驗證手工修改 `_prisma_migrations` 替代。本機替代 runner 由 Prisma engine 自行管理 migration history，僅可指向 development loopback DB。
 
 開發 snapshot：`db:backup` 加密保存資料，保留原始 .env.local backup key；`db:backup:verify` 建立並刪除其自身的暫存驗證 DB，不刪既有資料庫。新 cloud task 若 Docker volume 為空，startup 先 `db:restore:local`，再執行 migration；現有 schema 時跳過 restore。新 cloud task 還原未獨立驗證，不假定 Docker volumes 或 live processes 會保存。
+
+## 已發布 VPS 的更新流程
+
+目錄 `/opt/health-association/app`；Compose project `cchm-demo`，檔案 `compose.yaml` + VPS 本地 `compose.vps.yaml`，runtime 讀 `.env.production`。Nginx 在 `/etc/nginx/conf.d/test.cchm.tw.conf`，網站容器僅發布 127.0.0.1:3000。秘密、憑證私鑰、DB volume 與 VPS 本地設定不屬於 Git。
+
+本次 CSV 功能不新增 migration，不需重新 seed。更新前確認沒有尚未處理的 tracked 修改，並保留目前 image 供故障回復；不要 force pull、刪除 volumes 或覆寫 .env.production。
+
+```sh
+cd /opt/health-association/app
+git status --short
+docker image tag cchm-demo-web cchm-demo-web:previous
+git pull --ff-only origin main
+docker compose -p cchm-demo --env-file .env.production -f compose.yaml -f compose.vps.yaml build web
+docker compose -p cchm-demo --env-file .env.production -f compose.yaml -f compose.vps.yaml up -d --no-build web
+docker compose -p cchm-demo --env-file .env.production -f compose.yaml -f compose.vps.yaml ps
+curl --fail --head https://test.cchm.tw/
+```
+
+Build 失敗時不要執行 up；舊容器會繼續服務。更新會短暫重啟 web，此流程不宣稱零停機。之後有 schema 變動時需另審查 migration、備份及 restore 驗證，不能沿用「本次無 migration」判斷。
+
+目前註冊／入會／報名 flags=false；沒有預設管理員。dev:admin 只適用本機開發，不能直接當作 VPS 管理員建立程序。正式 SMTP／經核准政策與安全管理員初始化待完成。
+
+VPS 已用標準 Prisma CLI 成功套用三個 migrations；雲端環境曾有 native engine 網路限制，兩者的驗證範圍不同。示範 seed 在一次性工具容器共享獨立 DB 網路命名空間，僅對自己的 cchm_demo 使用 loopback 開發匯入；網站 runtime 始終 DEVELOPMENT_MODE=false。不對既有正式資料庫使用此流程，也不匯入開發帳號與 Session。
