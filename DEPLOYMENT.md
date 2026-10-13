@@ -131,3 +131,57 @@ curl --fail --head https://test.cchm.tw/contact
 ```
 
 瀏覽/contact確認示範告知與表單，使用虛構內容取得收件編號。管理員初始化尚未完成，VPS後台不會因這次更新自動可登入。獨立示範站也需要後續監控與保留期限／備份還原演練；不要刪除volume來處理升級錯誤。
+
+## 不使用SMTP的示範管理員初始化
+
+`scripts/demo-admin.mjs` 是主機管理者專用的一次性CLI，不是公開API，也不能作正式帳號初始化。限定 DEVELOPMENT_MODE=false、DB=cchm_demo、HTTPS origin=test.cchm.tw，以及保留的@example.test登入識別碼。操作者需顯式傳--confirm-demo-bootstrap；任何既有管理角色（含Staff/Editor）或重複email都拒絕，不提升既有帳號、不改既有密碼。
+
+示範帳號的emailVerified由主機管理者手動設true以允許此保留識別碼登入，沒有寄出驗證信、不代表信箱所有權已驗證。terms/privacy consent仍false，不虛構正式政策同意。建立User／Better Auth credential hash／DEMO_ADMIN_BOOTSTRAPPED audit同交易，advisory lock防重複初始化。正式管理員應另走身分確認／MFA／寄信／政策流程。
+
+先pull最新版（不需migration或web重建），在VPS root終端建立私密密碼檔。密碼不作命令參數、不顯示、不貼聊天；至少12字元，含英文與數字。以下互動區塊需按提示輸入兩次；既有檔案不覆寫。
+
+```sh
+cd /opt/health-association/app
+git pull --ff-only origin main
+python3 - <<'PYTHON'
+from pathlib import Path
+import getpass, os, re
+p = Path('/root/.cchm-bootstrap/password')
+if p.exists():
+    raise SystemExit('密碼檔已存在，未覆蓋。')
+p.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+password = getpass.getpass('設定示範管理員密碼：')
+confirmation = getpass.getpass('再次輸入密碼：')
+if password != confirmation:
+    raise SystemExit('兩次密碼不同，未建立檔案。')
+if not 12 <= len(password) <= 128 or not re.search('[A-Za-z]', password) or not re.search('[0-9]', password):
+    raise SystemExit('密碼需12至128字元，包含英文與數字。')
+with os.fdopen(os.open(p, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600), 'w') as f:
+    f.write(password + '\n')
+print('私密密碼檔已建立，密碼未顯示。')
+PYTHON
+```
+
+確認沒有錯誤後，初始化：
+
+```sh
+docker run --rm \
+  --network cchm-demo_default \
+  --env-file .env.production \
+  --mount type=bind,src=/root/.cchm-bootstrap/password,dst=/run/cchm-admin-password,readonly \
+  -v "$PWD:/app" -w /app \
+  node:24-bookworm-slim \
+  node scripts/demo-admin.mjs \
+  --email admin@example.test \
+  --name '示範管理員' \
+  --password-file /run/cchm-admin-password \
+  --confirm-demo-bootstrap
+```
+
+成功顯示Demo administrator created，開https://test.cchm.tw/auth/login，以admin@example.test與自行設定密碼登入，接著進/admin。不改SMTP、DEVELOPMENT_MODE、政策、註冊／入會／報名開關。確認登入成功後刪除此次明文密碼檔（一般刪除不宣稱安全抹除儲存媒體）：
+
+```sh
+rm /root/.cchm-bootstrap/password
+```
+
+私密檔必須是目前使用者擁有的regular file，拒絕symlink及group/other權限；工具不輸出密碼與hash。若已有管理角色，停止並使用既有帳號流程，不能reset DB或刪帳號來繞過。若需修改密碼，登入後使用既有密碼修改功能；忘記密碼在未設定SMTP時沒有公開重設捷徑。

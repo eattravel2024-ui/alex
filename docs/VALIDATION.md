@@ -139,3 +139,9 @@ Typecheck、ESLint、production build 通過。`PLAYWRIGHT_CHROMIUM_EXECUTABLE_P
 修正：noValidate改由現有Zod驗證，保留required/長度屬性；每種欄位錯誤有中文說明，status focus+scroll確保可見，前端未通過不發API；UUID在try中，缺randomUUID時以crypto.getRandomValues產生RFC4122 v4（不使用Math.random），安全亂數不可用時明確提示。
 
 Typecheck、Lint、build通過。聯絡桌面／手機套件實際14項全通過（14.4秒），包含新空白／未同意提示與focus/viewport、缺randomUUID仍成功儲存及既有提交、RBAC、限流、關閉開關案例。本次未重跑全套70項；上一版66項全套通過仍為上一版結果。沒有新migration，VPS需重新pull/build後驗證使用者情況。
+
+## 2026-10-13 示範管理員CLI
+
+Typecheck／ESLint通過。獨立初始化整合套件desktop/mobile實際2項全部通過（15.3秒）：隨機孤立DB套用4 migrations、缺confirm／真實信箱／錯誤環境／過寬密碼檔權限拒絕；同email既有MEMBER拒絕且不變角色；建立SUPER_ADMIN與官方hash驗證；重複執行拒絕且僅一筆audit；SMTP空白、policyfalse的獨立服務以實際Better Auth sign-in成功並讀/admin。finally停止自身server、刪除自己的孤立DB與password file，不操作現有DB帳號。
+
+首次SQL測試失敗，原因是將同一prepared parameter同時用於text與UUID欄位；改用分開的參數後上述整合套件全部通過，未放寬assertion或資料庫約束。CLI不改web source/schema，因此沿用已驗證的standalone建置作實際登入測試；本次未重新build或重跑其他70項E2E。VPS初始化仍需操作者在VPS執行，不宣稱已建立遠端帳號。

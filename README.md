@@ -99,3 +99,5 @@ E2E 的 CMS projects 在既有前台／會員 projects 通過後執行，避免�
 ## 聯絡示範
 
 `/contact` 在 CONTACT_SUBMISSIONS_ENABLED=true 時接受虛構姓名與 @example.test 信箱；匿名詢問寫入 PostgreSQL，不寄送任何郵件。`/admin/contacts` 僅 Staff/Admin/Super Admin 可讀取與處理。需要第四個 migration；新開發設定會啟用，既有 .env.local 若缺少此旗標，僅追加 CONTACT_SUBMISSIONS_ENABLED=true，保留所有密鑰。公開 VPS 預設關閉，按 DEPLOYMENT.md 的聯絡版本更新流程啟用；不是正式聯絡服務。
+
+VPS可用一次性`scripts/demo-admin.mjs`建立首位保留@example.test識別碼的示範管理員，不寄送郵件，無預設密碼。必須由VPS操作者明確確認，讀取owner-only密碼檔、只在cchm_demo/test.cchm.tw或隔離本機測試DB執行；詳見DEPLOYMENT.md。正式管理員與MFA流程仍待完成。

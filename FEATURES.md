@@ -62,7 +62,7 @@
 - 完成：ContactMessage／ContactMessageChange，四個 migration、20個模型；訊息、同意版本與時間、狀態、接手與內部處理歷程持久化。contact demo-only／version CHECK。
 - 完成：Origin／16KiB上限／strict schema／蜜罐、資料庫10分鐘IP10次＋信箱3次限流；代理鏈使用最後IP，沒有可信IP時共用保守限流；同提交ID與內容重試去重、內容改變409，無公開讀取API。
 - 完成：Staff/Admin/Super Admin 後台搜尋、狀態與自身／未指派篩選、分頁、新訊息數；接手／釋出、狀態與說明更新、row lock／版本衝突／交易history與audit。不能搶走或釋出他人接手的訊息；Editor/Member沒有訊息個資權限。
-- CONTACT_SUBMISSIONS_ENABLED 預設false，開發新設定true；VPS需要明確啟用。正式聯絡服務、真實信箱、郵件回覆、附件、CAPTCHA、保留與刪除工作流程、對外查詢與正式法律政策尚未完成。管理員登入初始化仍未完成，沒有預設管理員。
+- CONTACT_SUBMISSIONS_ENABLED 預設false，開發新設定true；VPS需要明確啟用。正式聯絡服務、真實信箱、郵件回覆、附件、CAPTCHA、保留與刪除工作流程、對外查詢與正式法律政策尚未完成。示範管理員首次初始化CLI已完成，沒有預設帳號或密碼；正式管理員流程仍待完成。
 
 ## Phase 5：規劃
 
@@ -75,3 +75,7 @@
 ## VPS 示範站
 
 使用者提供的終端驗證顯示 test.cchm.tw 已部署：PostgreSQL／Web healthy、Nginx HTTPS 200、HTTP 301、Certbot 續期與 deploy hook 測試成功。此為示範發布，不代表正式營運驗收；註冊／入會／報名仍關閉。本次後续功能須更新 VPS 後才會出現。
+
+## 示範管理員初始化
+
+完成：VPS操作員限定CLI、固定示範DB／HTTPS網域、保留信箱識別碼、owner-only密碼檔與symlink拒絕、Better Auth官方hash、首次角色guard、transaction/advisory lock/audit。不依賴SMTP、不開公開註冊、不虛構政策同意。此為示範登入識別碼手動核准，不宣稱郵件驗證或正式管理員安全驗收。VPS實際初始化仍需使用者執行。

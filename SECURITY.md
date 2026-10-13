@@ -62,3 +62,9 @@ Editor/Admin/Super Admin 的內容權限於每次讀／寫重新驗證；Staff/M
 公開提交有獨立預設false開關、固定@example.test信箱限制與DB demo CHECK，不使用 SMTP。蜜罐／same-origin／strict輸入／大小限制、持久化IP與email限流；IP依目前VPS單層Nginx追加的最後peer，不能直接公開容器或未審查改成多層代理。資料庫操作無原始IP保存，RateLimit key保留SHA256而非明文信箱/IP；不將它稱為不可逆匿名化。
 
 Staff/Admin/Super Admin才能讀聯絡個資與note，Editor/Member不可讀，更新記history/audit。匿名收件reference只作收件識別，不提供公開讀取。反垃圾機制不是完整CAPTCHA/DoS解決方案；資料刪除／保留期限與正式聯絡隱私政策尚未完成。
+
+## 操作員限定示範初始化
+
+CLI demo-admin不是public endpoint，只允許cchm_demo/test.cchm.tw及明確指定的隨機隔離測試DB；需要顯式確認與owner-only regular password file，O_NOFOLLOW/fstat拒絕symlink、其他使用者所有權、group/other權限與過大檔案。密碼不接受命令列字串、不print/hash輸出，使用Better Auth官方hashPassword；不保證JS記憶體字串安全清零。
+
+首次初始化以advisory transaction lock檢查任何管理角色／重複email，拒絕覆寫；新增User/Account/AuditLog原子交易。emailVerified為保留@example.test識別碼的操作者手動核准，不是SMTP驗證；不更改政策／signup flags，consentfalse。這不提供正式身分確認、MFA或忘記密碼的無SMTP繞過。操作後移除暫存密碼檔，使用者自行保存密碼。
