@@ -32,7 +32,7 @@ PostgreSQL 與 Prisma 依需求採用。帳號與正式會員資格分離。身�
 
 ## Phase 2 實際實作
 
-`src/lib/catalog.ts`：明確測試來源的文章與活動型別／fixture、純函數篩選與分頁。`services/content-service.ts`：全文／相關文章查詢；下一階段替換 Prisma，route 與 UI 不應直連 DB。搜尋列表使用 Server Components 與 async searchParams；詳情 generateStaticParams 預渲染。
+`src/lib/catalog.ts`：明確測試來源的文章與活動型別／fixture、純函數篩選與分頁。`services/content-service.ts`：公開文章的 Prisma 查詢，只有 PUBLISHED／已到期 SCHEDULED 可見；搜尋／分類／標籤／分頁在 DB 執行。首頁、文章、sitemap 為動態 SSR，metadata 與全文使用 React request-scoped cache 共用查詢；沒有跨 request 持久快取。活動仍用 fixtures。`article-cms-service.ts`：文字區塊 CMS、版本／row lock、修訂快照、還原草稿與 audit 交易。`src/proxy.ts` 僅對公開文章 URL 預檢可見性並 rewrite 共用 404，避免 loading stream 先送 200；頁面仍獨立查詢。
 
 `components/content`：列表、卡片、頁首／麵包屑、文章全文、活動月曆；分享是小型 Client Component。純文字內容由 React escape，不接收任意富文字 HTML。健康文章不虛構審閱者或認證。Calendar 與事件時間指定 Asia/Taipei。
 
@@ -45,3 +45,7 @@ Better Auth 1.7.7 + Prisma adapter（transaction=true），credentials 與 sessi
 RHF AuthForm + shared Zod schemas；API routes 提供自己的資料讀寫、bookmark、session UUID 撤銷、申請及角色審核。Member layout 與頁面動態 SSR，訪客 redirect login。Profile service 交易更新姓名/選填電話/偏好及 audit；application service 在 user/application row lock 與版本檢查內處理變更。
 
 Local PostgreSQL/Mailpit 由 compose.dev.yaml 管理，.env.local 保存隨機開發憑證（忽略且 0600）。Auth 郵件透過 Next after 寄至本機 SMTP，不阻塞存在性差異的回應；尚無 durable outbox/retry，寄送失敗可重新請求。正式 SMTP 需 TLS。標準 Prisma CLI native engine egress 被阻擋，本機使用官方、版本固定的 internal generator 與 WASM engine；這不是內部 API 穩定性承諾，升級需驗證。正常 application runtime 使用 PrismaPg，無需要 Node 的 WASM 模組實驗旗標；只有本機 migration helper 需要。
+
+## CMS 邊界
+
+文章資料不接受任意 HTML／媒體 URL。區塊與來源 JSON 在寫入與讀取皆驗證，React 安全文字渲染；來源只允許不含帳密的 HTTPS 連結，不伺服器抓取來源。Editor 全部文章可編輯，但無會員個資權限。版本 row lock 防止 lost update；還原永遠先轉草稿。CMS 所有內容目前保持 isDemo=true，正式審閱與正式資料的發布授權流程尚未提供。

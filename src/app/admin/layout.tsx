@@ -40,6 +40,9 @@ export default async function Layout({
       <div className="member-layout">
         <nav className="member-nav" aria-label="後台導覽">
           <Link href="/admin">工作總覽</Link>
+          {canAdmin(user.role, "content") && (
+            <Link href="/admin/articles">文章管理</Link>
+          )}
           {canAdmin(user.role, "review") && (
             <Link href="/admin/applications">申請審核</Link>
           )}

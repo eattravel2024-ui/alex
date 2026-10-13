@@ -1,9 +1,12 @@
 import type { MetadataRoute } from "next";
-import { allArticles, eventRecords } from "@/lib/catalog";
+import { eventRecords } from "@/lib/catalog";
 import { siteOrigin } from "@/lib/seo";
-export default function sitemap(): MetadataRoute.Sitemap {
+import { listPublishedArticles } from "@/lib/services/content-service";
+export const dynamic = "force-dynamic";
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const origin = siteOrigin();
   if (!origin) return [];
+  const allArticles = await listPublishedArticles();
   return [
     "",
     "/about",

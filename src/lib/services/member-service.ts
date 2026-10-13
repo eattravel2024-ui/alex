@@ -1,7 +1,7 @@
 import "server-only";
 import { db } from "@/lib/server/db";
 import { ServiceError } from "@/lib/server/access";
-import { allArticles } from "@/lib/catalog";
+import { getArticle } from "@/lib/services/content-service";
 import type { z } from "zod";
 import {
   profileSchema,
@@ -216,14 +216,14 @@ export async function toggleBookmark(
   slug: string,
   remove = false,
 ) {
-  if (!allArticles.some((a) => a.kind === "knowledge" && a.slug === slug))
-    throw new ServiceError(404, "NOT_FOUND", "找不到健康文章。");
   if (remove) {
     await db.articleBookmark.deleteMany({
       where: { userId, articleSlug: slug },
     });
     return { saved: false };
   }
+  if (!(await getArticle("knowledge", slug)))
+    throw new ServiceError(404, "NOT_FOUND", "找不到健康文章。");
   await db.articleBookmark.upsert({
     where: { userId_articleSlug: { userId, articleSlug: slug } },
     create: { userId, articleSlug: slug },

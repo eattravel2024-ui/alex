@@ -48,7 +48,7 @@ export function assertSameOrigin(request: Request) {
   )
     throw new ServiceError(403, "INVALID_ORIGIN", "請從本站送出操作。");
 }
-export async function readJson(request: Request) {
+export async function readJson(request: Request, maxBytes = 8192) {
   const reader = request.body?.getReader();
   if (!reader) throw new ServiceError(400, "INVALID_JSON", "資料格式無效。");
   const decoder = new TextDecoder();
@@ -58,7 +58,7 @@ export async function readJson(request: Request) {
     const { done, value } = await reader.read();
     if (done) break;
     size += value.byteLength;
-    if (size > 8192) {
+    if (size > maxBytes) {
       await reader.cancel();
       throw new ServiceError(413, "PAYLOAD_TOO_LARGE", "資料超過大小限制。");
     }

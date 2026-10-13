@@ -81,3 +81,19 @@ PostgreSQL 17 + Mailpit 在本機 loopback，使用隨機生成、忽略且權�
 - `start_skill` 更新並已確認草稿儲存；install_script 保留原已驗證流程。草稿未發布，新任務還原未驗證；Git 僅本機提交，未推送、未執行正式部署。
 
 此交付為 Phase 4 的會員管理核心。文章／頁面 CMS、媒體上傳、活動管理、聯絡追蹤、系統設定、角色指派、營運趨勢與 CSV 尚未完成，不宣稱整個 Phase 4 已完成。
+
+# Phase 4 文章 CMS 驗證（2026-10-13，Asia/Taipei）
+
+- 新增 ArticleRecord／ArticleRevision，共 15 個 models；第二個 migration 只新增 CMS schema，原會員 migration 與 partial unique/CHECK 保留。實際套用 1 pending，重跑 0 pending。
+- 官方 WASM createMigration 的 shadow factory 不支援，改為明確指定已驗證前一版 schema 的 schema-to-schema SQL diff；生成與套用分開，SQL 已檢閱。沒有 DB reset、checksum/TLS bypass 或 migration history 偽造。
+- `db:verify:cms` 在自己建立的獨立空白 DB 套用兩個 migrations、重跑0 pending、seed9篇文章、確認0預設帳號、四個業務 CHECK 與會員 partial unique，修改／下架文章後再次 seed 保留狀態。只刪除自己建立的測試 DB，不更動現有 DB。
+- TypeScript、Lint、production build 通過。首頁、文章列表／全文／sitemap 改為 dynamic SSR；CMS 有權限保護的列表、編輯與預覽頁。文章僅讀 DB，活動保持 fixtures。
+- 最終 12 unit + 44 desktop/mobile E2E/API 全數通過、零跳過／未執行；原36個前台、會員與管理測試保留，新增8個CMS整合與2個validation unit。CMS projects 在舊 suites 通過後執行，避免公開測試內容干擾 fixture 分頁。
+- 真實表單建立草稿、区塊排序、私人／即時預覽、發布、搜尋、收藏、下架、取消下架收藏、修訂還原4版本；PostgreSQL revisions/audit 驗證。XSS 標題與段落顯示為文字，沒有執行 script／img onerror；手機 editor 無橫向 overflow。
+- API 角色：Editor/Admin/Super Admin可寫，Staff/Member403，未登入401；直接 Staff preview 不含私人標題。CSRF403、未知fields／危險來源／外部封面400、>64KiB413、duplicate slug409、併發update一成功一409、固定網址400、跨文章revision404。失敗不新增 revision/audit。
+- 排程未到期公開404／首頁不含標題，到期同狀態立即公開200／首頁可見；過去排程輸入400，改草稿立即404／列表不含內容。無 fixture fallback。
+- 回歸曾發現 Next loading stream 導致未知文章畫面404但HTTP200； metadata 阻塞不足以解決，最終由公開文章 Proxy 先查可見性、rewrite共用404，再由頁面獨立查詢。最終原404測試及CMS草稿／下架測試皆通過。未提供 CDN-cache 或正式 latency/CWV 驗收。
+- 最新加密 DB backup 實際在獨立DB還原，確認2 completed migrations；原 DB 未覆寫。來源／browser assets 未包含隨機 generated secrets，`.env.local` 0600。編輯器1440px／390px截圖已檢視；虛構視覺檢查帳號的暫時 Editor 角色已恢復，檢查用 server 已停止。
+- 雲端 install_script/start_skill 已確認更新草稿，加入 db:verify:cms、兩個 migrations、示範seed保護與CMS啟動／測試說明；未發布、未驗證新任務還原。Git 僅本機提交，無推送或正式部署。
+
+文字區塊 CMS 基礎已實作。完整富文字 WYSIWYG、獨立分類／標籤 CRUD、媒體上傳、頁面／Banner／導覽 CMS、活動與聯絡管理、系統設定及正式內容審閱仍未完成；不宣稱 Phase 4 全部完成。

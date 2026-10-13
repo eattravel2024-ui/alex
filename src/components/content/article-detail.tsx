@@ -7,13 +7,26 @@ import { Breadcrumb } from "./page-heading";
 import { ArticleCard } from "./article-card";
 import { BookmarkControl } from "@/components/member/bookmark-control";
 import { ShareButton } from "./share-button";
-export function ArticleDetail({ article }: { article: Article }) {
+export async function ArticleDetail({
+  article,
+  preview = false,
+}: {
+  article: Article;
+  preview?: boolean;
+}) {
   const title = article.kind === "news" ? "最新消息" : "健康知識",
     origin = siteOrigin(),
-    related = getRelatedArticles(article.kind, article.slug);
+    related = preview
+      ? []
+      : await getRelatedArticles(article.kind, article.slug);
   return (
     <>
       <article className="article-detail container">
+        {preview && (
+          <p className="demo-warning">
+            後台預覽 · 尚未對外發布的變更不會出現在前台
+          </p>
+        )}
         <Breadcrumb
           items={[
             { label: title, href: `/${article.kind}` },
@@ -46,11 +59,11 @@ export function ArticleDetail({ article }: { article: Article }) {
           priority
         />
         <div className="prose">
-          {article.blocks.map((block) => (
-            <section key={block.heading}>
+          {article.blocks.map((block, index) => (
+            <section key={index}>
               <h2>{block.heading}</h2>
-              {block.paragraphs.map((p) => (
-                <p key={p}>{p}</p>
+              {block.paragraphs.map((p, index) => (
+                <p key={index}>{p}</p>
               ))}
             </section>
           ))}
@@ -59,8 +72,8 @@ export function ArticleDetail({ article }: { article: Article }) {
               <h2>來源與審閱資訊</h2>
               <p>最後審閱日期：{article.reviewedAt ?? "尚未專業審閱"}</p>
               <ul>
-                {article.references.map((reference) => (
-                  <li key={reference.url}>
+                {article.references.map((reference, index) => (
+                  <li key={index}>
                     <a
                       href={reference.url}
                       target="_blank"
@@ -88,8 +101,8 @@ export function ArticleDetail({ article }: { article: Article }) {
             </Link>
           ))}
         </div>
-        <ShareButton />
-        {article.kind === "knowledge" && (
+        {!preview && <ShareButton />}
+        {!preview && article.kind === "knowledge" && (
           <BookmarkControl slug={article.slug} />
         )}
         {article.kind === "knowledge" && (
@@ -98,20 +111,22 @@ export function ArticleDetail({ article }: { article: Article }) {
           </p>
         )}
       </article>
-      <section className="section related-section">
-        <div className="container">
-          <h2>延伸閱讀</h2>
-          <div className="article-grid">
-            {related.map((a) => (
-              <ArticleCard key={a.slug} article={a} />
-            ))}
+      {!preview && (
+        <section className="section related-section">
+          <div className="container">
+            <h2>延伸閱讀</h2>
+            <div className="article-grid">
+              {related.map((a) => (
+                <ArticleCard key={a.slug} article={a} />
+              ))}
+            </div>
+            <Link className="text-link" href={`/${article.kind}`}>
+              返回{title}列表 ↗
+            </Link>
           </div>
-          <Link className="text-link" href={`/${article.kind}`}>
-            返回{title}列表 ↗
-          </Link>
-        </div>
-      </section>
-      {origin && (
+        </section>
+      )}
+      {!preview && origin && (
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{

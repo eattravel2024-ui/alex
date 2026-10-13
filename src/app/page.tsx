@@ -2,14 +2,20 @@ import Image from "next/image";
 import { ActionLink, SectionHeading } from "@/components/ui";
 import Link from "next/link";
 import { ArticleCard } from "@/components/content/article-card";
-import { knowledgeArticles, newsArticles, eventRecords } from "@/lib/catalog";
+import { eventRecords } from "@/lib/catalog";
+import { listPublishedArticles } from "@/lib/services/content-service";
+export const dynamic = "force-dynamic";
 import { pageMetadata } from "@/lib/seo";
 export const metadata = pageMetadata(
   "中華健康管理協會｜讓健康成為日常",
   "協會官方網站開發示範：健康知識、最新消息與活動課程。",
   "/",
 );
-export default function Home() {
+export default async function Home() {
+  const [newsArticles, knowledgeArticles] = await Promise.all([
+    listPublishedArticles("news", 3),
+    listPublishedArticles("knowledge", 3),
+  ]);
   return (
     <>
       <div className="demo-notice">

@@ -16,7 +16,7 @@ npm run db:generate
 npm run dev -- --hostname 0.0.0.0
 ```
 
-首頁 `/`、協會 `/about`、消息 `/news`、知識 `/knowledge`、活動 `/events`、聯絡 `/contact`，法律草案 `/privacy`、`/terms`。文章與活動支援 `[slug]` 全文頁；搜尋、分類、標籤、分頁與月曆以 query string 保存。內容來自明確標示的本地示範資料，文章與活動尚未接 CMS；會員資料已由 PostgreSQL 保存。會員功能需要本機 PostgreSQL 與 Mailpit。`dev:setup` 隨機產生未追蹤的 `.env.local`（已有檔案不覆寫），啟動兩個服務；不建立預設管理員或共用密碼。開發來源必須與 BETTER_AUTH_URL 相符，預設是 `http://127.0.0.1:3000`。若使用受限雲端環境，可設定 `npm_config_cache=/workspace/.npm-cache`。
+首頁 `/`、協會 `/about`、消息 `/news`、知識 `/knowledge`、活動 `/events`、聯絡 `/contact`，法律草案 `/privacy`、`/terms`。文章與活動支援 `[slug]` 全文頁；搜尋、分類、標籤、分頁與月曆以 query string 保存。文章已接 PostgreSQL CMS，保留示範聲明；活動仍來自本地 fixtures，會員資料由 PostgreSQL 保存。會員功能需要本機 PostgreSQL 與 Mailpit。`dev:setup` 隨機產生未追蹤的 `.env.local`（已有檔案不覆寫），啟動兩個服務；不建立預設管理員或共用密碼。開發來源必須與 BETTER_AUTH_URL 相符，預設是 `http://127.0.0.1:3000`。若使用受限雲端環境，可設定 `npm_config_cache=/workspace/.npm-cache`。
 
 ## 檢查
 
@@ -64,8 +64,22 @@ Docker volumes 不假定隨雲端任務保存。`npm run db:backup` 在 `.local/
 
 ## 管理後台（Phase 4 管理核心）
 
-`/admin` 提供真實資料統計；`/admin/applications` 為申請審核；`/admin/members` 為帳號搜尋與停用／恢復；`/admin/audit` 為唯讀稽核紀錄。角色限制見 docs/API.md。會員中心會對有權限的帳號顯示後台入口。文章 CMS、活動、媒體與設定尚未完成。
+`/admin` 提供真實資料統計；`/admin/applications` 為申請審核；`/admin/members` 為帳號搜尋與停用／恢復；`/admin/audit` 為唯讀稽核紀錄。角色限制見 docs/API.md。會員中心會對有權限的帳號顯示後台入口。文章 CMS 基礎已完成；活動、媒體與設定仍待完成。
 
 開發環境先註冊並完成本機 Mailpit 信箱驗證，再以**自己的既有開發帳號**執行 `npm run dev:admin -- <已驗證的開發帳號信箱>`。這會提升該帳號為 Super Admin 並留下稽核紀錄，不建立帳號、不產生密码；拒絕 production／非 loopback DB。此命令不納入自動 install/seed；正式角色初始化流程仍待制定。
 
 停用／恢復會撤銷登入，原因寫入對方站內通知。這不改變會員資格；管理角色不能在此被停用。管理畫面的資料搜尋、分頁與 mutation 皆於伺服器重新檢查權限。
+
+## 文章 CMS（Phase 4）
+
+`/admin/articles`：列表、標題搜尋、類型／狀態篩選與分頁；`/admin/articles/new` 與 `/admin/articles/[id]`：文字區塊編輯、區塊排序、分类／標籤、作者、來源連結、示範封面、草稿／發布／排程／下架；`/preview` 為受權限保護的已儲存預覽。Editor、Admin、Super Admin 可操作；Staff、Member 不可讀取草稿或操作內容。
+
+發布與到期排程即時出現在首頁、列表、全文、相關文章及有正式 APP_URL 時的 sitemap。下架與草稿不會回退到 fixtures；下架收藏顯示「文章已下架」，可取消收藏。文章網址／類型建立後固定。版本檢查拒絕過期修改，保留最近 20 版修訂的後台入口；還原建立新版本且先回到草稿。
+
+這是**文字區塊 CMS**，HTML 以文字呈現；完整 WYSIWYG、分類／標籤獨立管理、任意媒體上傳、頁面／Banner／導覽 CMS 仍待實作。來源只接受 HTTPS 且不得夾帶帳密；封面僅用三張本地插畫。所有內容仍為示範，不宣稱已完成專業內容審閱。
+
+`db:seed` 使用 Node 24 的原生 TypeScript stripping 匯入 fixtures，只新增不存在的九篇示範文章，不覆寫管理員的修改／下架。前台文章與首頁現在需要正常 PostgreSQL；DB 失效不偷偷切回 fixtures。公開文章 URL 由 Next Proxy 在串流前判斷可見性，再由頁面重新查詢，以保留真正的 HTTP 404。
+
+WASM 增量 migration 可用 `npm run db:migrate:local -- --create <name> --from-schema <verified-previous-schema-file>` 產生 SQL；只產生檔案，不立即套用。必須檢閱 SQL、保留手工業務約束，再執行不带 --create 的 migration 指令。此為 development-only helper，不偵測實體 DB drift，也不替代正式 native Prisma migration tooling。
+
+E2E 的 CMS projects 在既有前台／會員 projects 通過後執行，避免測試中的公開內容干擾既有 fixture 數量；每個 CMS test 完成後將自己的文章下架並恢復專用角色。未執行的 dependency projects 或 tests 不算通過。

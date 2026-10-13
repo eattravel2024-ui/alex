@@ -7,8 +7,9 @@ export default async function Page() {
   const user = await currentUser();
   if (!user || !canAdmin(user.role, "dashboard")) return <AccessDenied />;
   const canReview = canAdmin(user.role, "review"),
-    canMembers = canAdmin(user.role, "members");
-  const [pending, returned, accounts, disabled] = await Promise.all([
+    canMembers = canAdmin(user.role, "members"),
+    canContent = canAdmin(user.role, "content");
+  const [pending, returned, accounts, disabled, drafts] = await Promise.all([
     canReview
       ? db.membershipApplication.count({ where: { status: "PENDING" } })
       : null,
@@ -19,6 +20,7 @@ export default async function Page() {
     canMembers
       ? db.user.count({ where: { role: "MEMBER", disabled: true } })
       : null,
+    canContent ? db.articleRecord.count({ where: { status: "DRAFT" } }) : null,
   ]);
   return (
     <>
@@ -51,15 +53,28 @@ export default async function Page() {
             <strong>{disabled}</strong>
           </Link>
         )}
+        {drafts !== null && (
+          <Link href="/admin/articles?status=DRAFT">
+            <span>文章草稿</span>
+            <strong>{drafts}</strong>
+          </Link>
+        )}
       </div>
+      {canAdmin(user.role, "content") && (
+        <p>
+          <Link className="button button-primary" href="/admin/articles">
+            管理文章
+          </Link>
+        </p>
+      )}
       <div className="demo-warning">
         <h3>目前可用功能</h3>
         <p>
           申請審核、帳號查詢與停用，以及最高管理員的稽核紀錄。核准示範申請不授予正式會員資格。
         </p>
         <p>
-          文章
-          CMS、媒體、活動管理與系統設定尚待實作；編輯角色目前可進入此頁，但沒有會員資料權限。
+          文章 CMS
+          已提供編輯、預覽、發布、排程與版本還原。媒體、活動管理與系統設定尚待實作；編輯角色沒有會員資料權限。
         </p>
       </div>
     </>

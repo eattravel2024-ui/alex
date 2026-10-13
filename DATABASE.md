@@ -43,10 +43,18 @@ Phase 3 使用 Prisma migration 與可重複的測試 seed，所有示範紀錄�
 
 ## 已建立的資料模型與差異
 
-User、Session、Account、Verification、RateLimit、MemberProfile、MembershipType、MembershipApplication、Membership、MembershipStatusHistory、Notification、ArticleBookmark、AuditLog 已建立。Role 暫以 enum 覆蓋五種角色；Role/Permission 多對多與 CMS／event／course／payment 模型在後續階段。
+User、Session、Account、Verification、RateLimit、MemberProfile、MembershipType、MembershipApplication、Membership、MembershipStatusHistory、Notification、ArticleBookmark、AuditLog 已建立。Role 暫以 enum 覆蓋五種角色；Role/Permission 多對多與頁面 CMS／event／course／payment 模型在後續階段。
 
 Better Auth 密碼 hash 在 Account.password，User 保存 emailVerified、停用、server-owned role、條款/隱私同意時間與版本。Session token 屬敏感 DB 資料，會員 API 不暴露它；IP/user-agent 不寫入 Session。框架限流 key 可能含 IP，額外 per-account key 以 email 的 SHA-256 作識別，資料保留/定期清理留待正式營運政策。
 
-ArticleBookmark 暫存 fixture slug，在 CMS migration 時改為 Article FK；service 驗證 slug 必須存在。申請使用 uuid，history 與 audit 不做任意 cascade 刪除。Membership.isDemo 與 DEMO- 編號明確區分測試核准；user 註冊不建立 Membership。
+ArticleBookmark 保存不可變的文章 slug，service 驗證目前文章可見；下架仍可取消收藏。尚未改為 Article FK，文章只做軟下架、不提供實體刪除或改網址，歷史 slug 保留。申請使用 uuid，history 與 audit 不做任意 cascade 刪除。Membership.isDemo 與 DEMO- 編號明確區分測試核准；user 註冊不建立 Membership。
 
 `20261013000100_phase3_membership/migration.sql` 由官方 Prisma WASM diff 產生，補上 partial unique 與業務 CHECK。套用由同版本 Prisma migration engine 管理 `_prisma_migrations` 的 checksum，不是 db push 或手工假冒 migration 記錄。
+
+## Phase 4 文章模型
+
+新增 ArticleRecord／ArticleRevision，目前共 15 個 models。ArticleRecord 具 unique slug、kind/status enum、category/tags、title/summary/searchText、JSON blocks/references、publishAt、version、更新人 FK 與 isDemo。kind+status+publishAt、category+kind 索引，tags GIN；version 正值與可發布狀態必須有 publishAt 的 CHECK。ArticleRevision 保存完整驗證過的內容與狀態快照，articleId+version unique、article/actor Restrict FK。
+
+增量 SQL migration 由鎖定版本 Prisma WASM schema-to-schema diff 產生並檢閱，僅新增 CMS tables/enums/indexes/constraints，不修改 Phase 3 migration 或移除會員約束。WASM createMigration shadow factory 在本版本不支援；development helper 明確要求先前 schema 檔，只產生 SQL，人工檢閱後再 apply，沒有 reset 或假造 migration history。不能用來宣稱完成 drift 檢查或正式 migration 工具驗收。
+
+開發 seed 匯入九篇文章，只做 ON CONFLICT DO NOTHING；新增文章第一次建立即有 revision，原 seed 文章由首次保存開始記錄後續修訂。排程不需要 DB status 轉換 job：SCHEDULED + publishAt<=now 即可見；UI 會標示已生效。

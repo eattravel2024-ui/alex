@@ -13,9 +13,26 @@ export default defineConfig({
     trace: "retain-on-failure",
   },
   projects: [
-    { name: "desktop", use: { ...devices["Desktop Chrome"] } },
+    {
+      name: "desktop",
+      testIgnore: "**/cms.spec.ts",
+      use: { ...devices["Desktop Chrome"] },
+    },
     {
       name: "mobile",
+      testIgnore: "**/cms.spec.ts",
+      use: { ...devices["iPhone 13"], defaultBrowserType: "chromium" },
+    },
+    {
+      name: "cms-desktop",
+      testMatch: "**/cms.spec.ts",
+      dependencies: ["desktop", "mobile"],
+      use: { ...devices["Desktop Chrome"] },
+    },
+    {
+      name: "cms-mobile",
+      testMatch: "**/cms.spec.ts",
+      dependencies: ["desktop", "mobile"],
       use: { ...devices["iPhone 13"], defaultBrowserType: "chromium" },
     },
   ],

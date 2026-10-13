@@ -44,3 +44,9 @@ PostgreSQL 開發容器使用開發管理角色以支援 migration/test，正式
 伺服器每次查詢／mutation 檢查最新 role、emailVerified 與 disabled；每頁明確投影需要的欄位，沒有 password／token query。Admin/Super Admin 僅能切換其他 MEMBER 的帳號狀態，保護管理角色及自己；角色指派未提供 Web API。停用／恢復在 row-lock 交易中寫入通知、稽核並刪除 Session；member 資格不改動。最高管理員稽核唯讀介面不呈現原因、IP、信箱或秘密。尚未提供不可竄改 audit storage、MFA 與正式 privilege bootstrap。
 
 本機 `dev:admin` 必須明確提供既有已驗證帳號，拒絕 production／非 loopback DB；不在 seed/setup 自動執行，不建立帳號／密码。此為開發工具，不可用於正式角色初始化。
+
+## Phase 4 文章 CMS
+
+Editor/Admin/Super Admin 的內容權限於每次讀／寫重新驗證；Staff/Member 無私人文章資料權限。CMS 不渲染輸入 HTML，標題、段落、live preview 與私人預覽全部使用 React 文字轉義；不提供富文字工具列。來源限定 HTTPS/no credentials，封面限定三張本地 SVG；來源不由 server fetch。JSON strict schema／大小64 KiB／段落數與長度限制、Origin 驗證、row-lock version409、唯一 slug、修訂與 audit 原子寫入。正文樣式的 HTML 裝飾只能由元件產生。
+
+公開內容服務沒有 fixture fallback，無效／草稿／下架公開 URL 在 Next Proxy 串流前預檢並回404；private preview 禁用公開 JSON-LD/分享/收藏。此預檢增加公開全文的一次輕量 DB 查詢，頁面仍獨立查詢，不把 Proxy 作為 private authorization 邊界。尚未驗證正式 DB latency/CWV。文章保持 demo flag；正式審閱與法規內容發布流程仍待建立。

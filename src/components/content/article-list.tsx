@@ -1,14 +1,9 @@
 import Link from "next/link";
-import {
-  allArticles,
-  contentUrl,
-  selectArticles,
-  type ArticleKind,
-  type SearchQuery,
-} from "@/lib/catalog";
+import { contentUrl, type ArticleKind, type SearchQuery } from "@/lib/catalog";
+import { selectPublishedArticles } from "@/lib/services/content-service";
 import { ArticleCard } from "./article-card";
 import { PageHeading } from "./page-heading";
-export function ArticleList({
+export async function ArticleList({
   kind,
   query,
 }: {
@@ -17,12 +12,8 @@ export function ArticleList({
 }) {
   const title = kind === "news" ? "最新消息" : "健康知識",
     base = `/${kind}`,
-    result = selectArticles(kind, query),
-    categories = [
-      ...new Set(
-        allArticles.filter((a) => a.kind === kind).map((a) => a.category),
-      ),
-    ];
+    result = await selectPublishedArticles(kind, query),
+    categories = result.categories;
   return (
     <>
       <PageHeading
