@@ -2,6 +2,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { ArticleTextarea } from "./article-textarea";
+import { ArticleParagraphs } from "@/components/content/article-paragraphs";
 import {
   articleImages,
   articleInputSchema,
@@ -122,8 +124,8 @@ export function ArticleEditor({
       }}
     >
       <p className="demo-warning">
-        所有文章保留開發示範標示。此編輯器儲存文字區塊，輸入的 HTML
-        會顯示為文字；尚無富文字工具列或媒體上傳。
+        所有文章保留開發示範標示。段落支援粗體、斜體、清單與 HTTPS
+        連結，輸入的 HTML 會顯示為文字；媒體上傳尚未提供。
       </p>
       <fieldset disabled={busy}>
         <legend>基本資料</legend>
@@ -298,14 +300,14 @@ export function ArticleEditor({
             <label htmlFor={`cms-paragraph-${index}`}>
               區塊 {index + 1} 段落
             </label>
-            <textarea
+            <ArticleTextarea
               id={`cms-paragraph-${index}`}
               value={b.paragraphs.join("\n\n")}
               required
               rows={6}
               maxLength={20100}
-              onChange={(e) =>
-                block(index, { paragraphs: e.target.value.split(/\n\s*\n/) })
+              onChange={(value) =>
+                block(index, { paragraphs: value.split(/\n\s*\n/) })
               }
             />
           </div>
@@ -439,11 +441,9 @@ export function ArticleEditor({
         <h2>{data.title || "文章標題"}</h2>
         <p>{data.summary}</p>
         {data.blocks.map((b, i) => (
-          <section key={i}>
+          <section key={i} className="prose">
             <h3>{b.heading}</h3>
-            {b.paragraphs.map((p, j) => (
-              <p key={j}>{p}</p>
-            ))}
+            <ArticleParagraphs paragraphs={b.paragraphs} />
           </section>
         ))}
       </details>

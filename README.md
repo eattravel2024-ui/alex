@@ -72,11 +72,13 @@ Docker volumes 不假定隨雲端任務保存。`npm run db:backup` 在 `.local/
 
 ## 文章 CMS（Phase 4）
 
-`/admin/articles`：列表、標題搜尋、類型／狀態篩選與分頁；`/admin/articles/new` 與 `/admin/articles/[id]`：文字區塊編輯、區塊排序、分类／標籤、作者、來源連結、示範封面、草稿／發布／排程／下架；`/preview` 為受權限保護的已儲存預覽。Editor、Admin、Super Admin 可操作；Staff、Member 不可讀取草稿或操作內容。
+`/admin/articles`：列表、標題搜尋、類型／狀態篩選與分頁；`/admin/articles/new` 與 `/admin/articles/[id]`：文字區塊編輯、區塊排序、分類／標籤、作者、來源連結、示範封面、草稿／發布／排程／下架；`/preview` 為受權限保護的已儲存預覽。Editor、Admin、Super Admin 可操作；Staff、Member 不可讀取草稿或操作內容。
 
 發布與到期排程即時出現在首頁、列表、全文、相關文章及有正式 APP_URL 時的 sitemap。下架與草稿不會回退到 fixtures；下架收藏顯示「文章已下架」，可取消收藏。文章網址／類型建立後固定。版本檢查拒絕過期修改，保留最近 20 版修訂的後台入口；還原建立新版本且先回到草稿。
 
-這是**文字區塊 CMS**，HTML 以文字呈現；完整 WYSIWYG、分類／標籤獨立管理、任意媒體上傳、頁面／Banner／導覽 CMS 仍待實作。來源只接受 HTTPS 且不得夾帶帳密；封面僅用三張本地插畫。所有內容仍為示範，不宣稱已完成專業內容審閱。
+段落工具列支援粗體、斜體、項目清單、編號清單與 HTTPS 連結；選取文字後按工具鈕，或使用 Ctrl／⌘＋B、Ctrl／⌘＋I。連結在編輯器內填寫並驗證，Enter 插入連結，Escape 取消。空白行分隔段落，清單項目使用單一換行。編輯中的預覽、已儲存私人預覽與公開全文共用同一個渲染器。
+
+這是**文字區塊與有限格式 CMS**：段落仍存為字串，支援 `**粗體**`、`*斜體*`、`[連結文字](https://example.org/)`、`- 項目` 與 `1. 項目`；標題與摘要保持純文字。HTML、不合法網址與未配對格式會保留為文字，不執行 HTML／MDX；段落連結不得夾帶帳密。沒有新增依賴或資料庫 migration。完整 WYSIWYG、分類／標籤獨立管理、任意媒體上傳、導覽／Footer CMS 仍待實作。來源只接受 HTTPS 且不得夾帶帳密；封面僅用三張本地插畫。所有內容仍為示範，不宣稱已完成專業內容審閱。
 
 `db:seed` 使用 Node 24 的原生 TypeScript stripping 匯入 fixtures，只新增不存在的九篇示範文章，不覆寫管理員的修改／下架。前台文章與首頁現在需要正常 PostgreSQL；DB 失效不偷偷切回 fixtures。公開文章 URL 由 Next Proxy 在串流前判斷可見性，再由頁面重新查詢，以保留真正的 HTTP 404。
 

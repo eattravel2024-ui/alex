@@ -7,6 +7,7 @@ import { Breadcrumb } from "./page-heading";
 import { ArticleCard } from "./article-card";
 import { BookmarkControl } from "@/components/member/bookmark-control";
 import { ShareButton } from "./share-button";
+import { ArticleParagraphs } from "./article-paragraphs";
 export async function ArticleDetail({
   article,
   preview = false,
@@ -62,9 +63,7 @@ export async function ArticleDetail({
           {article.blocks.map((block, index) => (
             <section key={index}>
               <h2>{block.heading}</h2>
-              {block.paragraphs.map((p, index) => (
-                <p key={index}>{p}</p>
-              ))}
+              <ArticleParagraphs paragraphs={block.paragraphs} />
             </section>
           ))}
           {article.kind === "knowledge" && (

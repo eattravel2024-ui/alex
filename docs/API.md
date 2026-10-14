@@ -50,6 +50,8 @@
 
 文章 payload：slug、kind(news/knowledge)、title、summary、category、tags、image、author、featured、reviewedAt(nullable date)、blocks[{heading,paragraphs}]、references[{title,url}]、status(DRAFT/PUBLISHED/SCHEDULED/ARCHIVED)、publishAt(nullable ISO datetime)。status=PUBLISHED 立即發布，保留有效的過去 publishAt；SCHEDULED 必須提供未來時間。新增後 slug/kind 固定。API 不接受 isDemo／更新人／額外角色等字段；所有內容仍 isDemo=true。CMS body 上限 64 KiB，restore 維持8 KiB；Origin/Session/最新角色重新驗證。
 
+`blocks[].paragraphs[]` 仍為每段最多2000字的字串；顯示時支援有限語法 `**粗體**`、`*斜體*`、`[文字](https://...)`、連續的 `- 項目`／`1. 項目` 行。既有純文字段落維持相容，反斜線可跳脫格式符號；不支援HTML／MDX／圖片／任意Markdown。僅明確HTTPS且沒有帳密、空白／控制字元或反斜線的段落網址會成為連結，其他網址與不完整語法顯示為文字。API不因段落內的不合法連結而拒絕保存；references欄位的HTTPS驗證與400行為不變。標題／摘要／區塊標題不解析格式，無新增資料欄位或migration。
+
 重複 slug 或過期 version 回409；不合法來源／排程／改網址回400；無目標文章或修訂不屬於目標回404；未登入401／角色不足403。版本與修訂／audit 均為交易；還原 audit=ARTICLE_RESTORED，不自動發布。下架為 soft archive，无實體刪除端點。私人預覽與所有資料頁在查詢前重新驗權，不依賴 Layout。修訂頁顯示最近20版，未提供大量歷程匯出或 hard-delete。
 
 # Phase 4 活動 API

@@ -173,3 +173,15 @@ Typecheck、lint及desktop/mobile孤立整合2項通過（15.4秒）。重設時
 新增首頁內建四圖選擇、alt、兩個CTA及目的地白名單；介紹六章完整ID集合可排序／顯示，至少一章可見，法律提示獨立保留。沿用既有JSON，schema與migration檔案未改；沒有執行backup、migration或VPS部署。原始快照缺visible/hero仍可讀取還原，缺visible視true、hero用原始設定。
 
 18單元測試全通過，typecheck/lint/production build通過。受影響頁面CMS整合以pages-desktop --no-deps與pages-mobile --no-deps依序執行，各1項通過（7.3／7.6秒），涵蓋既有角色／草稿／restore／版本與新UI排序隱藏／法律提示／首頁插圖CTA／草稿未發布不改前台／javascript URL拒絕。測試finally還原原始頁面snapshot與角色。這是針對此增量的2項整合驗證，不宣稱重跑上輪76項全套。
+
+## 2026-10-14 文章段落格式工具（協會網站開發）
+
+新增粗體、斜體、項目／編號清單與HTTPS連結工具列，支援選取範圍保留、Ctrl／⌘快捷鍵、連結欄位Enter插入／Escape取消、字數與busy狀態保護。段落仍存為原JSON字串，標題與摘要維持純文字；編輯中、已儲存私人預覽及公開文章使用同一個React渲染器，HTML與危險連結顯示為文字。沒有新增依賴、資料欄位或migration。
+
+- `npm run test:unit`：38項通過，無失敗／跳過；新增20項涵蓋網址／HTML、跳脫、不完整語法、清單、巢狀深度與工作量限制、跨段落與清單格式、既有wrapper切換及選取範圍。
+- `npm run typecheck`、`npm run lint`、最終production build通過；建置在helper修正定稿後執行。
+- 正式建置版本的文章前台回歸：`content.spec.ts --project=desktop --project=mobile --no-deps -g '知識文章|消息全文'`，4項通過（7.8秒）。
+- CMS桌面／手機既有8項回歸通過，包含RBAC／CSRF／版本衝突／草稿／排程／發布下架／收藏／還原。新增2項格式工具整合首跑因測試定位同時匹配Next路由通知與工具錯誤提示而中止；定位縮至編輯器後，僅重跑受影響2項，全數通過（9.2秒）。
+- 新格式整合驗證實際點擊工具列與快捷鍵、跨段落格式、拒絕javascript連結、Enter不誤送文章、儲存後文字不遺失，以及三種預覽的strong／em／清單符號／安全連結／HTML文字與手機無水平溢出。已檢視手機工具列及預覽截圖。
+
+本增量共38項單元與14項目標瀏覽器檢查通過；未重跑所有活動、會員與頁面CMS套件。測試文章僅下架自身新增的資料，專用測試帳號恢復MEMBER。沿用既有開發服務与雲端設定，沒有新增環境草稿設定。依使用者先前指示，本輪未操作VPS備份、migration或重新部署；線上VPS仍維持原版本。完整WYSIWYG、媒體上傳與其他未完成項目仍見FEATURES.md。

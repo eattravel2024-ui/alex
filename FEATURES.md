@@ -47,7 +47,8 @@
 - 完成：本機 `dev:admin` 顯式提升已存在且驗證完成的開發帳號，具備 audit、重跑安全與 development/loopback guard；不建立預設帳號或密码。
 - 完成：文章／消息的新增、編輯、區塊排序、分類／標籤欄位、全文搜尋、私人預覽、草稿／發布／台灣時間排程／下架、修訂與還原草稿；每次保存同一交易寫入修訂與 Audit Log。
 - 完成：首頁／列表／全文／相關文章／條件 sitemap 與收藏查詢連動 PostgreSQL，公開文章預檢保留 HTTP 404；沒有隱藏 fixture fallback。既有九篇示範文章 seed 重跑不覆寫 CMS 修改。
-- 完成：內容 RBAC（Editor/Admin/Super Admin）、strict schema、64 KiB CMS body 限制、版本409／唯一slug／固定網址、HTTPS來源與本地封面白名單；所有內容安全文字渲染。
+- 完成：內容 RBAC（Editor/Admin/Super Admin）、strict schema、64 KiB CMS body 限制、版本409／唯一slug／固定網址、HTTPS來源與本地封面白名單；HTML保持文字顯示。
+- 完成：文章段落粗體／斜體／項目與編號清單／HTTPS連結工具列、快捷鍵與選取範圍保留；編輯中、私人與公開預覽共用有限格式渲染。僅支援安全文字語法，危險連結保持文字，標題／摘要不解析格式；沿用原資料格式，無新增migration。
 - 完成：活動資料庫／前台列表／月曆／全文／首頁／sitemap，後台活動建立／編輯／公開／取消／下架、資格／截止／名額／候補設定、名單與狀態分頁。
 - 完成：會員自身報名／候補／取消、FIFO 遞補與资格重查、站內通知／歷程／audit 原子交易；row lock 防超額、unique防重複；同一使用者取消後重報排到新隊尾。
 - 完成：Staff/Admin/Super Admin 名單／CSV／報到，只有 Admin/Super Admin 可修改活動；CSV公式防護／匯出稽核／不預抓下載；報到時段與資格驗證、禁止重複報到。

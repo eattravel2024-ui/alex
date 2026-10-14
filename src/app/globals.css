@@ -1120,6 +1120,12 @@ summary:focus-visible {
   line-height: 2;
   margin-bottom: 18px;
 }
+.article-body-paragraph { white-space: pre-wrap; overflow-wrap: anywhere; }
+.prose .article-body-list { color: var(--muted); line-height: 2; padding-left: 1.6em; margin: 0 0 18px; }
+.prose ul.article-body-list { list-style: disc; }
+.prose ol.article-body-list { list-style: decimal; }
+.article-body-list li { padding-left: .2em; overflow-wrap: anywhere; }
+.article-body-paragraph a, .article-body-list a { color: var(--green); text-decoration: underline; text-underline-offset: .2em; overflow-wrap: anywhere; }
 .reference-panel {
   background: #f3f6f2;
   border-left: 3px solid var(--green);
@@ -1885,6 +1891,15 @@ dd {
 .cms-live-preview { padding: 24px; border: 1px solid var(--border); border-radius: 16px; overflow-wrap: anywhere; }
 .cms-live-preview summary { cursor: pointer; font-weight: 700; }
 .cms-live-preview p { white-space: pre-wrap; }
+.article-textarea { min-width: 0; display: grid; gap: 10px; }
+.article-format-toolbar { display: flex; flex-wrap: wrap; gap: 8px; }
+.article-format-toolbar button, .article-link-fields > button { min-height: 44px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; background: white; font: inherit; cursor: pointer; }
+.article-format-toolbar button:hover, .article-link-fields > button:hover { border-color: var(--green); }
+.article-format-toolbar button:disabled, .article-link-fields > button:disabled { opacity: .45; cursor: default; }
+.article-link-fields { min-width: 0; display: flex; flex-wrap: wrap; align-items: end; gap: 12px; padding: 16px; border: 1px solid var(--border); border-radius: 10px; background: white; }
+.article-link-fields > div { flex: 1 1 220px; min-width: 0; }
+.article-format-hint { font-size: 13px; color: var(--muted); margin: 0; }
+.article-format-message { color: #9b2727; margin: 0; overflow-wrap: anywhere; }
 .cms-page-title { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
 .admin-area .article-detail { width: 100%; max-width: 100%; padding-top: 25px; }
 @media(max-width:600px) { .cms-two-columns { grid-template-columns: 1fr; } .cms-editor fieldset { padding: 16px; } .cms-page-title { flex-wrap: wrap; } }
