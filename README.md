@@ -64,7 +64,7 @@ Docker volumes 不假定隨雲端任務保存。`npm run db:backup` 在 `.local/
 
 ## 管理後台（Phase 4 管理核心）
 
-`/admin` 提供真實資料統計；`/admin/applications` 為申請審核；`/admin/members` 為帳號搜尋與停用／恢復；`/admin/audit` 為唯讀稽核紀錄。角色限制見 docs/API.md。會員中心會對有權限的帳號顯示後台入口。文章 CMS 基礎已完成；活動管理基礎已完成；媒體與設定仍待完成。
+`/admin` 提供真實資料統計；`/admin/applications` 為申請審核；`/admin/members` 為帳號搜尋與停用／恢復；`/admin/audit` 為唯讀稽核紀錄。角色限制見 docs/API.md。會員中心會對有權限的帳號顯示後台入口。文章、活動與封面圖片媒體管理基礎已完成；系統設定仍待完成。
 
 開發環境先註冊並完成本機 Mailpit 信箱驗證，再以**自己的既有開發帳號**執行 `npm run dev:admin -- <已驗證的開發帳號信箱>`。這會提升該帳號為 Super Admin 並留下稽核紀錄，不建立帳號、不產生密码；拒絕 production／非 loopback DB。此命令不納入自動 install/seed；正式角色初始化流程仍待制定。
 
@@ -78,7 +78,7 @@ Docker volumes 不假定隨雲端任務保存。`npm run db:backup` 在 `.local/
 
 段落工具列支援粗體、斜體、項目清單、編號清單與 HTTPS 連結；選取文字後按工具鈕，或使用 Ctrl／⌘＋B、Ctrl／⌘＋I。連結在編輯器內填寫並驗證，Enter 插入連結，Escape 取消。空白行分隔段落，清單項目使用單一換行。編輯中的預覽、已儲存私人預覽與公開全文共用同一個渲染器。
 
-這是**文字區塊與有限格式 CMS**：段落仍存為字串，支援 `**粗體**`、`*斜體*`、`[連結文字](https://example.org/)`、`- 項目` 與 `1. 項目`；標題與摘要保持純文字。HTML、不合法網址與未配對格式會保留為文字，不執行 HTML／MDX；段落連結不得夾帶帳密。沒有新增依賴或資料庫 migration。完整 WYSIWYG、分類／標籤獨立管理、任意媒體上傳、導覽／Footer CMS 仍待實作。來源只接受 HTTPS 且不得夾帶帳密；封面僅用三張本地插畫。所有內容仍為示範，不宣稱已完成專業內容審閱。
+這是**文字區塊與有限格式 CMS**：段落仍存為字串，支援 `**粗體**`、`*斜體*`、`[連結文字](https://example.org/)`、`- 項目` 與 `1. 項目`；標題與摘要保持純文字。HTML、不合法網址與未配對格式會保留為文字，不執行 HTML／MDX；段落連結不得夾帶帳密。文字格式本身不需migration；封面媒體增量需要第六個migration。完整 WYSIWYG、分類／標籤獨立管理、文件／影片上傳、導覽／Footer CMS 仍待實作。来源只接受 HTTPS 且不得夾帶帳密；封面可選三張本地插畫或經過驗證的上傳圖片。所有內容仍為示範，不宣稱已完成專業內容審閱。
 
 `db:seed` 使用 Node 24 的原生 TypeScript stripping 匯入 fixtures，只新增不存在的九篇示範文章，不覆寫管理員的修改／下架。前台文章與首頁現在需要正常 PostgreSQL；DB 失效不偷偷切回 fixtures。公開文章 URL 由 Next Proxy 在串流前判斷可見性，再由頁面重新查詢，以保留真正的 HTTP 404。
 
@@ -109,3 +109,13 @@ VPS可用一次性`scripts/demo-admin.mjs`建立首位保留@example.test識別�
 登入後台後選「首頁內容」「協會介紹」。修改後「儲存草稿」不改公開頁面，私人預覽只顯示已儲存的文字；「發布目前內容」更新前台。修訂還原只生成草稿，需另按發布。需要第五個migration，不用seed；圖片、版型、導覽與Footer未提供編輯。
 
 頁面CMS現在支援首頁主視覺四張內建插圖、替代文字、兩個按鈕文字與站內目的地，以及協會介紹章節排序／顯示（至少保留一章）。沿用SitePage JSON，無新增migration；舊snapshot仍有效，沒有新欄位時使用原始設定。此階段依使用者指示只開發／測試與上傳原始碼，不執行VPS備份、migration或部署。
+
+## 文章封面與媒體管理
+
+Editor/Admin/Super Admin 可在 `/admin/media` 上傳、搜尋、分頁、修改圖片替代文字，以及確認刪除未使用圖片。文章編輯器的「選擇媒體圖片」可選用既有圖片或直接上傳；封面替代文字保存在文章與修訂版本中，舊文章與舊snapshot仍相容。媒體描述更新用於之後的選用，不覆寫文章自己的替代文字。
+
+只接受不超過5MB的JPG、PNG、WebP靜態圖片。伺服器確認檔案內容／MIME與完整性，限制1600萬像素，移除中繼資料、依EXIF方向旋轉，縮至1600×1200內並重新編碼WebP。SVG、GIF、動畫、多頁、偽裝或損壞檔案會拒絕。圖片庫總量上限512MB，每位操作者每分鐘最多5張成功上傳，同時最多處理2筆，串流上傳逾時30秒。圖片以隨機UUID命名，原始檔名不保存。
+
+圖片預設只供內容管理角色預覽；有目前已發布／排程已到期文章引用時，`/media/[id]` 才公開提供。圖片回應no-store，Next optimizer禁止處理`/media`，避免下架後殘留公開快取。當前文章和全部修訂版本引用的圖片禁止刪除，包括草稿或已下架文章；切換封面不會破壞歷史還原。
+
+本機開發默认使用忽略Git的 `.local/media`，`npm start` 將它解析為絕對路徑，避免standalone工作目錄改變。正式runtime必須指定絕對且非public、沒有符號連結的`MEDIA_STORAGE_DIR`；Compose使用獨立`media_data` volume，Dockerfile預先建立非root使用者可寫目錄。資料庫備份不包含圖片檔案，保存／搬遷時需同步保留圖片目錄或volume。這版新增MediaAsset與ArticleRecord.imageAlt，共23模型、6個migrations；圖片處理使用直接鎖定的sharp0.35.5依賴。依使用者安排，VPS更新仍另行處理。

@@ -48,7 +48,23 @@
 | PATCH /api/admin/articles/[id] | 完整欄位與目前 version，成功200 | Editor/Admin/Super Admin |
 | POST /api/admin/articles/[id]/restore | revisionId + 目前 version，還原為新草稿版 | Editor/Admin/Super Admin |
 
-文章 payload：slug、kind(news/knowledge)、title、summary、category、tags、image、author、featured、reviewedAt(nullable date)、blocks[{heading,paragraphs}]、references[{title,url}]、status(DRAFT/PUBLISHED/SCHEDULED/ARCHIVED)、publishAt(nullable ISO datetime)。status=PUBLISHED 立即發布，保留有效的過去 publishAt；SCHEDULED 必須提供未來時間。新增後 slug/kind 固定。API 不接受 isDemo／更新人／額外角色等字段；所有內容仍 isDemo=true。CMS body 上限 64 KiB，restore 維持8 KiB；Origin/Session/最新角色重新驗證。
+文章 payload：slug、kind(news/knowledge)、title、summary、category、tags、image、imageAlt(可省略，預設空字串)、author、featured、reviewedAt(nullable date)、blocks[{heading,paragraphs}]、references[{title,url}]、status(DRAFT/PUBLISHED/SCHEDULED/ARCHIVED)、publishAt(nullable ISO datetime)。status=PUBLISHED立即發布，保留有效的過去publishAt；SCHEDULED必須提供未來時間。新增後slug/kind固定。API不接受isDemo／更新人／額外角色等字段；所有內容仍isDemo=true。CMS body上限64KiB，restore維持8KiB；Origin/Session/最新角色重新驗證。image只接受三張內建插畫或精確`/media/<uuid>`；媒體需存在且檔案可讀，否則400 MEDIA_NOT_FOUND。imageAlt最多160字，上傳媒體未填時採用媒體替代文字並保存在文章與revision，舊snapshot保持相容。
+
+## 文章封面媒體 API
+
+| Method / path | 行為 | 授權 |
+| --- | --- | --- |
+| GET /api/admin/media?q=&page=1 | 替代文字搜尋、12筆分頁，回items/total/page/pages | Editor/Admin/Super Admin |
+| POST /api/admin/media | multipart file與altText；成功201回MediaItem | 同上＋Origin |
+| PATCH /api/admin/media/[id] | strict JSON {altText,version}，修改替代文字及增版本 | 同上＋Origin |
+| DELETE /api/admin/media/[id] | strict JSON {version}，刪除未使用圖片 | 同上＋Origin |
+| GET /media/[id] | 重新編碼後的WebP，當前公開文章引用時公開；否則只給內容角色預覽 | 公開引用或上述角色 |
+
+MediaItem為id、url、altText、width、height、byteSize、createdAt(ISO)、version、used；不含原始檔名／儲存路徑／操作者個資。altText為trim後1–160字，PATCH/DELETE JSON上限8KiB，version須正整數。不接受額外或重複multipart字段。未登入401／角色不足403／Origin無效403／格式無效400／大小超限413／上傳逾時408／版本或正在使用409／繁忙與成功上傳限速429／儲存未配置或IO問題503。
+
+圖片上限5MiB，multipart整體5MiB+64KiB，串流固定記憶體及30秒限制、2並發。JPG/PNG/WebP須實際內容與MIME一致、完整静態單頁且最多1600萬像素；重新編碼至1600×1200內的WebP並移除原始中繼資料。媒體總量512MiB，每操作者最近60秒最多5筆成功MEDIA_UPLOADED稽核記錄；刪除圖片不重設限速。當前文章與任何修訂版本引用都阻止刪除，saveArticle與刪除鎖同一媒體row，避免併發留下斷鏈。舊媒體描述修改不覆寫文章自己的imageAlt。
+
+沒有公開媒體清單。未公開圖片／無權限／不存在的檔案路徑回404，全部圖片private,no-store／nosniff／CORP same-origin；Next optimizer仅允許/images，不能為/media建立公開快取。這些路徑以經處理的圖片回應，不允許SVG／任意HTML／下載原始內容。資料表與圖片volume各自保存，DB備份不含檔案；對外CDN／物件儲存、附件／影音與媒體復原作業尚未提供。
 
 `blocks[].paragraphs[]` 仍為每段最多2000字的字串；顯示時支援有限語法 `**粗體**`、`*斜體*`、`[文字](https://...)`、連續的 `- 項目`／`1. 項目` 行。既有純文字段落維持相容，反斜線可跳脫格式符號；不支援HTML／MDX／圖片／任意Markdown。僅明確HTTPS且沒有帳密、空白／控制字元或反斜線的段落網址會成為連結，其他網址與不完整語法顯示為文字。API不因段落內的不合法連結而拒絕保存；references欄位的HTTPS驗證與400行為不變。標題／摘要／區塊標題不解析格式，無新增資料欄位或migration。
 

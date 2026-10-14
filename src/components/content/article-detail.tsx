@@ -54,9 +54,10 @@ export async function ArticleDetail({
         <Image
           className="detail-cover"
           src={article.image}
+          unoptimized={article.image.startsWith("/media/")}
           width={960}
           height={640}
-          alt={`${article.category}示範插畫`}
+          alt={article.imageAlt || `${article.category}示範插畫`}
           priority
         />
         <div className="prose">

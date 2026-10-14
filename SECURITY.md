@@ -47,7 +47,9 @@ PostgreSQL 開發容器使用開發管理角色以支援 migration/test，正式
 
 ## Phase 4 文章 CMS
 
-Editor/Admin/Super Admin 的內容權限於每次讀／寫重新驗證；Staff/Member 無私人文章資料權限。CMS 不渲染輸入 HTML，標題、段落、live preview 與私人預覽全部使用 React 文字轉義；不提供富文字工具列。來源限定 HTTPS/no credentials，封面限定三張本地 SVG；來源不由 server fetch。JSON strict schema／大小64 KiB／段落數與長度限制、Origin 驗證、row-lock version409、唯一 slug、修訂與 audit 原子寫入。正文樣式的 HTML 裝飾只能由元件產生。
+Editor/Admin/Super Admin 的內容權限於每次讀／寫重新驗證；Staff/Member 無私人文章資料權限。CMS不渲染輸入HTML，段落使用有限粗體／斜體／清單／安全HTTPS連結AST，所有文字經React轉義，解析深度與工作量受限。來源限定HTTPS/no credentials，封面為本地插畫或已驗證媒體；來源不由server fetch。JSON strict schema／大小64KiB／段落數與長度限制、Origin驗證、row-lock version409、唯一slug、修訂與audit原子寫入。正文HTML元素只能由渲染元件產生。
+
+媒體僅接受內容角色的同來源上傳，body串流固定緩衝、5MiB+64KiB整體上限／30秒逾時／2並發，JPEG／PNG／WebP容器與MIME／decoder驗證，1600萬像素／静態单頁限制，sharp0.35.5重編碼WebP並移除中繼資料。私有絕對儲存路徑拒絕public與symlink祖先，UUID.webp以O_EXCL／O_NOFOLLOW及0600寫入；讀取只接受regularfile與已記錄大小。公開圖片須有當前可見文章引用，否則重新驗證內容角色；所有媒體no-store與CORP same-origin，Next optimizer localPatterns僅允許/images避免媒體快取旁路。圖片修改／刪除檢查版本，引用與刪除共用媒體rowlock，當前及歷史引用阻止刪除。上傳DB失敗會嘗試清理檔案；刪除IO失敗保留元資料可重試，刪檔後DB失敗時只有未使用元資料可能暫時缺檔，可再次刪除。DB與檔案不是分散式交易，不宣稱已提供完整儲存事故復原。
 
 公開內容服務沒有 fixture fallback，無效／草稿／下架公開 URL 在 Next Proxy 串流前預檢並回404；private preview 禁用公開 JSON-LD/分享/收藏。此預檢增加公開全文的一次輕量 DB 查詢，頁面仍獨立查詢，不把 Proxy 作為 private authorization 邊界。尚未驗證正式 DB latency/CWV。文章保持 demo flag；正式審閱與法規內容發布流程仍待建立。
 

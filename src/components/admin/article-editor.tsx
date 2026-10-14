@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArticleTextarea } from "./article-textarea";
 import { ArticleParagraphs } from "@/components/content/article-paragraphs";
+import { MediaPicker } from "./media-picker";
 import {
   articleImages,
   articleInputSchema,
@@ -125,7 +126,7 @@ export function ArticleEditor({
     >
       <p className="demo-warning">
         所有文章保留開發示範標示。段落支援粗體、斜體、清單與 HTTPS
-        連結，輸入的 HTML 會顯示為文字；媒體上傳尚未提供。
+        連結，輸入的 HTML 會顯示為文字；封面可選用內建插畫或上傳圖片。
       </p>
       <fieldset disabled={busy}>
         <legend>基本資料</legend>
@@ -220,9 +221,10 @@ export function ArticleEditor({
             id="cms-image"
             value={data.image}
             onChange={(e) =>
-              set("image", e.target.value as ArticleInput["image"])
+              setData((old) => ({ ...old, image: e.target.value, imageAlt: "" }))
             }
           >
+            {data.image.startsWith("/media/") && <option value={data.image}>已上傳的封面圖片</option>}
             {articleImages.map((image, i) => (
               <option key={image} value={image}>
                 {["日常生活", "均衡飲食", "心理照顧"][i]}
@@ -230,6 +232,7 @@ export function ArticleEditor({
             ))}
           </select>
         </div>
+        <MediaPicker value={data.image} altText={data.imageAlt} onChange={(image, imageAlt) => setData((old) => ({ ...old, image, imageAlt }))} />
         <label className="checkbox-row">
           <input
             type="checkbox"

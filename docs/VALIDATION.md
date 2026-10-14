@@ -185,3 +185,19 @@ Typecheck、lint及desktop/mobile孤立整合2項通過（15.4秒）。重設時
 - 新格式整合驗證實際點擊工具列與快捷鍵、跨段落格式、拒絕javascript連結、Enter不誤送文章、儲存後文字不遺失，以及三種預覽的strong／em／清單符號／安全連結／HTML文字與手機無水平溢出。已檢視手機工具列及預覽截圖。
 
 本增量共38項單元與14項目標瀏覽器檢查通過；未重跑所有活動、會員與頁面CMS套件。測試文章僅下架自身新增的資料，專用測試帳號恢復MEMBER。沿用既有開發服務与雲端設定，沒有新增環境草稿設定。依使用者先前指示，本輪未操作VPS備份、migration或重新部署；線上VPS仍維持原版本。完整WYSIWYG、媒體上傳與其他未完成項目仍見FEATURES.md。
+
+## 2026-10-14 文章封面與媒體管理
+
+完成`/admin/media`的圖片上傳／搜尋／分頁／替代文字更新／未使用刪除，以及文章內選圖或直接上傳。內容角色、Origin、版本與audit沿用既有管理邊界；JPEG／PNG／WebP驗證後轉WebP，處理像素／位元組／動畫／多頁／中繼資料與EXIF方向。私有檔案與元資料分開保存，當前公開文章引用才匿名提供，其他情況只供內容角色預覽。`/media`no-store與Next optimizer白名單防止私人或下架圖片的快取旁路。當前文章及全部修訂保護使用中的圖片，媒體rowlock防止新增引用與刪除競爭。
+
+- 官方WASM diff產生第六個migration，僅新增MediaAsset／文章imageAlt／索引與4個CHECK，沒有drop/reset。檢閱後本地套用1筆成功，Prisma client產生成功。`db:verify:cms`在自己建立的隨機空DB驗證6個migrations、重跑0 pending、19個業務CHECK／既有partial unique、9篇文章／3活動／無預設使用者與seed不覆寫修改，最後只刪除該DB。
+- `npm run test:unit`57項全通過，無失敗／跳過：新增13項真正圖片decode／縮放／方向／去除中繼資料／損壞／偽裝／動畫／MPO/APNG／大小與像素限制，6項固定buffer、碎片傳輸、超限、逾時／cancel、timer starvation与timer cleanup。200,000個單byte chunks以獨立`--expose-gc`程序驗證heap增長低於32MiB，覆蓋審查中重現的deadline handler逐chunk保留問題。
+- 型別、Lint与最終production build通過。Next的standalone工作目錄變更由start.mjs注入本機絕對媒體路徑；`.local/media`与秘密均不進Git或Docker build context，已確認standalone沒有.env檔。
+- 前台文章desktop/mobile4項回歸通過（7.9秒）；既有CMS desktop/mobile10項通過（23.8秒）。媒體desktop/mobile8項各一輪，最終16項全部通過（32.8秒），共30項目標瀏覽器檢查；不宣稱所有會員／活動／頁面CMS套件重跑。
+- 媒體整合涵蓋登入／五種角色／Origin、私有與公開圖片、真正檔案型別／中繼資料、大小含chunked transfer、樂觀併發修改、實體檔刪除與audit、草稿／發布／下架／到期排程／歷史還原、歷史引用刪除拒絕與新增引用／刪除競爭、Next optimizer400、圖片庫與編輯器上傳／選用／alt文字轉義／手機不溢出。新增限速回歸驗證連續上傳後刪除仍計入5次成功稽核。
+- 首輪媒體整合發現advisory lock的void回傳無法供Prisma raw query反序列化，改用既有服務的`SELECT 1 FROM pg_advisory_xact_lock(...)`後通過。後續手機測試發現初始檔案選取可能早於React change處理；上傳改讀native file input，新增沒有change事件仍能送出已選檔的回歸，最終完整16項通過。未放寬斷言或增加timeout來隱藏問題。
+- 儲存複核以隔離/tmp harness確認祖先symlink拒絕，以及注入ENOSPC的部分檔案不殘留；代碼限制只刪自身O_EXCL建立的檔案。刪檔IO失敗保留元資料供重試；實體檔與DB並非分散式交易，沒有宣稱完整storage災難復原。
+- Dockerfile.runtime成功封裝已建置產物；兩個network-none/read-only/non-root測試容器先由sharp產生並寫入WebP，再於重建容器讀回相同namedvolume圖片。僅刪除測試volume，沒有變動既有DB/Mailpit volume；多階段Dockerfile網路安裝管線未重新驗證。已檢視desktop圖片庫与mobile選圖截圖。
+- cleanup確認MediaAsset=0／本機media檔案=0，代表只留測試稽核，不留測試照片；自己的測試文章／revision刪除，測試角色恢復MEMBER，原站內容保持。原本開發schema保留6個已完成migrations。
+
+雲端`start_skill`草稿已保存媒體目錄保存、6個migration／23模型、啟動與目標驗證說明，保留原install_script／網路／其他設定。保存不等於發布，尚未獨立驗證新cloud任務還原。使用者安排先開發，本輪沒有VPS備份、migration、Nginx改動或部署。內文／首頁／活動媒體選用、文件／影片／裁切、CDN／物件儲存、媒體備份／事故復原與正式營運驗收仍未完成。

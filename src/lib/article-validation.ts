@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { mediaImageId } from "./media-validation.ts";
 export const articleStatuses = {
   DRAFT: "草稿",
   PUBLISHED: "已發布",
@@ -34,7 +35,11 @@ export const articleFieldsSchema = z
       .array(z.string().trim().min(1).max(40))
       .max(10)
       .transform((tags) => [...new Set(tags)]),
-    image: z.enum(articleImages),
+    image: z.string().refine((value) =>
+      (articleImages as readonly string[]).includes(value) || mediaImageId(value) !== null,
+      "請選擇內建插畫或已上傳的封面圖片",
+    ),
+    imageAlt: z.string().trim().max(160).default(""),
     author: z.string().trim().min(2).max(60),
     featured: z.boolean(),
     reviewedAt: z.iso.date().nullable(),
@@ -80,6 +85,7 @@ export const emptyArticle: ArticleInput = {
   category: "健康生活",
   tags: [],
   image: "/images/living.svg",
+  imageAlt: "",
   author: "網站編輯（開發示範）",
   featured: false,
   reviewedAt: null,

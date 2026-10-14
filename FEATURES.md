@@ -85,6 +85,12 @@
 
 ## 首頁與協會介紹文字CMS
 
-完成：/admin/pages/home、/admin/pages/about，Editor/Admin/Super Admin授權、strict內容與章節ID／順序驗證、草稿／安全文字私人預覽／發布／修訂還原草稿、版本409、交易鎖與revision/audit。首頁主標題與描述、理念／服務／會員三組主要標題與說明，協會介紹主標題／描述與六章文字可編輯。公開頁面只讀published；未有發布版本時使用原始示範文字，不吞掉DB錯誤。新增首頁內建主視覺選圖／替代文字／兩個CTA，以及協會介紹章節排序／顯示控制。三張服務卡片、使命卡片、完整Banner輪播、媒體上傳、導覽／Footer與SEO欄位尚未提供管理。
+完成：/admin/pages/home、/admin/pages/about，Editor/Admin/Super Admin授權、strict內容與章節ID／順序驗證、草稿／安全文字私人預覽／發布／修訂還原草稿、版本409、交易鎖與revision/audit。首頁主標題與描述、理念／服務／會員三組主要標題與說明，協會介紹主標題／描述與六章文字可編輯。公開頁面只讀published；未有發布版本時使用原始示範文字，不吞掉DB錯誤。新增首頁內建主視覺選圖／替代文字／兩個CTA，以及協會介紹章節排序／顯示控制。三張服務卡片、使命卡片、完整Banner輪播、首頁上傳圖片套用、導覽／Footer與SEO欄位尚未提供管理。
 
 第五個migration新增SitePage/SitePageRevision，22模型，固定home/about key與publication pair CHECK。最近10筆修訂可還原成新草稿，不自動發布；保持示範聲明與法律資訊提示。VPS需先備份／migration／build更新，尚未由agent部署。
+
+## 文章封面媒體管理
+
+完成：`/admin/media` 圖片上傳、搜尋／分頁、替代文字修改、未使用圖片確認刪除與文章內選圖／直接上傳。內容角色RBAC、Origin、串流位元組／時間／並發限制，MIME／檔案完整性／像素／動畫／多頁驗證，WebP重編碼與中繼資料移除；隨機檔名、私有儲存、草稿角色預覽／公開引用檢查、no-store與optimizer限制。圖片新增／修改／刪除寫Audit Log，樂觀版本與媒體row lock保護文章引用／刪除競爭，全部文章修訂保護還原所需圖片。
+
+第六個migration新增MediaAsset與文章imageAlt，23模型／19項業務CHECK；舊內建封面與修訂相容。Docker media_data volume与本機.local/media獨立保存；DB備份不包含實體圖片。尚未提供內文插圖、首頁／活動媒體套用、文件／影音、裁切工具、CDN／物件儲存、病毒掃描服務、孤立檔案清理作業及正式媒體政策驗收。Phase4仍有其他未完成項目；VPS未套用本增量。

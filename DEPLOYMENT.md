@@ -2,6 +2,16 @@
 
 目前提供前台、會員核心與部分後台。使用者已自行部署 VPS 示範站 https://test.cchm.tw，並提供 HTTPS 200／HTTP 301、Web／PostgreSQL healthy、Certbot dry-run 成功證據。這些是使用者回報，並非雲端 agent 直接登入 VPS 驗證。正式 SMTP、政策、會員規則、備份與正式營運驗收仍未完成。不得自行取得未提供的 SSH 憑證或修改其他網站。
 
+最新main包含首頁CMS第五個migration及媒體第六個migration。文章媒體需要持久化圖片volume，不能沿用本文件歷史CSV增量的「無migration」判斷。使用者目前要求先開發；本輪沒有在VPS執行備份／migration／部署。下列媒體說明是後續發布所需的設定。
+
+## 媒體資料保存
+
+`compose.yaml` 的web掛載`media_data:/var/lib/health-association/media`，並指定`MEDIA_STORAGE_DIR`。兩種Dockerfile都建立node可寫目錄，web使用非root。沿用原Compose project才能重用相同namedvolume，不可用`down -v`刪除圖片；本機VPS override不應覆蓋此掛載。裸機runtime應指定非public且沒有符號連結的絕對可寫目錄。原始檔不放入public，不隨build產物複製。
+
+代理也要允許multipart大小：後續更新時，僅在協會網站的Nginx vhost設定`client_max_body_size 6m;`，以容納5MiB圖片加multipart包裝；程式仍執行更嚴格的5MiB+64KiB上限。這是設定需求，本輪沒有修改VPS Nginx或其他子網域。
+
+第六個migration僅新增MediaAsset與ArticleRecord.imageAlt及索引／CHECK，不重置既有資料。新版本需標準Prisma migration完成後才啟動；舊文章封面與revision有預設值保持相容。媒體資料與實體檔案分開保存：pg_dump不含圖片，保存／還原／移轉時應同時保留media_data volume，且在同一內容版本停止媒體寫入取得一致資料。此版沒有自動媒體備份或物件儲存。
+
 ## 本機 Docker
 
 ```sh

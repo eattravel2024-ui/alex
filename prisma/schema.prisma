@@ -25,6 +25,7 @@ model User {
   eventChanges EventRegistrationChange[]
   editedArticles ArticleRecord[]
   articleRevisions ArticleRevision[]
+  mediaAssets MediaAsset[]
   id String @id @default(uuid()) @db.Uuid
   name String
   email String @unique
@@ -270,6 +271,7 @@ model ArticleRecord {
   category String
   tags String[]
   image String
+  imageAlt String @default("")
   author String
   featured Boolean @default(false)
   reviewedAt String?
@@ -286,6 +288,22 @@ model ArticleRecord {
   revisions ArticleRevision[]
   @@index([kind,status,publishAt])
   @@index([category,kind])
+  @@index([image])
+}
+model MediaAsset {
+  id String @id @default(uuid()) @db.Uuid
+  altText String
+  mimeType String @default("image/webp")
+  width Int
+  height Int
+  byteSize Int
+  version Int @default(1)
+  createdById String @db.Uuid
+  createdBy User @relation(fields:[createdById],references:[id],onDelete:Restrict)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  @@index([createdAt,id])
+  @@index([createdById,createdAt])
 }
 model ArticleRevision {
   id String @id @default(uuid()) @db.Uuid

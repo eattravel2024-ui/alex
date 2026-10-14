@@ -7,6 +7,8 @@ import {
   type ArticleInput,
 } from "@/lib/article-validation";
 import type { Prisma } from "@/generated/prisma/client";
+import { mediaImageId } from "@/lib/media-validation";
+import { readMediaFile } from "@/lib/server/media-storage";
 function publicationTime(input: ArticleInput) {
   if (input.status === "SCHEDULED") {
     if (!input.publishAt || new Date(input.publishAt) <= new Date())
@@ -70,6 +72,16 @@ export async function saveArticle(
           );
       }
       const data = dataFields(input, actorId);
+      const mediaId = mediaImageId(input.image);
+      if (mediaId) {
+        await tx.$queryRaw`SELECT id FROM "MediaAsset" WHERE id=${mediaId}::uuid FOR UPDATE`;
+        const asset = await tx.mediaAsset.findUnique({ where: { id: mediaId } });
+        if (!asset) throw new ServiceError(400, "MEDIA_NOT_FOUND", "選用的封面圖片已不存在，請重新選擇。");
+        try { await readMediaFile(mediaId, asset.byteSize); } catch {
+          throw new ServiceError(400, "MEDIA_NOT_FOUND", "封面圖片目前無法使用，請重新選擇。");
+        }
+        data.imageAlt = input.imageAlt || asset.altText;
+      }
       const article = id
         ? await tx.articleRecord.update({
             where: { id },

@@ -24,6 +24,7 @@ export function articleFields(a: ArticleRecord) {
     category: a.category,
     tags: a.tags,
     image: a.image,
+    imageAlt: a.imageAlt,
     author: a.author,
     featured: a.featured,
     reviewedAt: a.reviewedAt,

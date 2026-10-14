@@ -20,6 +20,9 @@ services:
       SMTP_FROM: ${SMTP_FROM:-}
       APP_URL: ${APP_URL:-}
       SITE_INDEXING_ENABLED: ${SITE_INDEXING_ENABLED:-false}
+      MEDIA_STORAGE_DIR: /var/lib/health-association/media
+    volumes:
+      - media_data:/var/lib/health-association/media
     ports:
       - "127.0.0.1:3000:3000"
     healthcheck:
@@ -35,3 +38,5 @@ services:
       retries: 3
     security_opt:
       - no-new-privileges:true
+volumes:
+  media_data:

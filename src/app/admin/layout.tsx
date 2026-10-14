@@ -43,6 +43,7 @@ export default async function Layout({
           {canAdmin(user.role, "content") && (
             <Link href="/admin/articles">文章管理</Link>
           )}
+          {canAdmin(user.role, "content") && <Link href="/admin/media">媒體管理</Link>}
           {canAdmin(user.role, "content") && <><Link href="/admin/pages/home">首頁內容</Link><Link href="/admin/pages/about">協會介紹</Link></>}
           {canAdmin(user.role, "review") && (
             <Link href="/admin/applications">申請審核</Link>

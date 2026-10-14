@@ -11,9 +11,10 @@ export function ArticleCard({ article }: { article: Article }) {
         <div className="article-image">
           <Image
             src={article.image}
+            unoptimized={article.image.startsWith("/media/")}
             width={600}
             height={400}
-            alt={`${article.category}主題示範插畫`}
+            alt={article.imageAlt || `${article.category}主題示範插畫`}
           />
         </div>
         <div className="article-body">

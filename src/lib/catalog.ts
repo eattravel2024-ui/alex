@@ -9,6 +9,7 @@ export type Article = {
   category: string;
   tags: string[];
   image: string;
+  imageAlt?: string;
   publishedAt: string;
   author: string;
   featured: boolean;
